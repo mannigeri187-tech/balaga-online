@@ -154,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateTab }) => {
                     <span>My Activity</span>
                   </button>
                   <button
-                    onClick={() => handleMenuClick("feed")}
+                    onClick={() => handleMenuClick("saved")}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/80 font-medium transition-colors"
                   >
                     <Bookmark className="w-4 h-4 text-slate-400" />

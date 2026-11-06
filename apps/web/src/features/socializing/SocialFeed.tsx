@@ -422,6 +422,94 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
     },
   ]);
 
+  // Listen for posts created from modal or other views
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("balaga_user_posts") || "[]");
+      if (Array.isArray(stored) && stored.length > 0) {
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const uniqueStored = stored
+            .filter((p: any) => !existingIds.has(p.id))
+            .map((p: any) => ({
+              id: p.id,
+              authorId: p.authorProfileId || "10000000-0000-0000-0000-000000000001",
+              author: {
+                id: p.authorProfileId || "10000000-0000-0000-0000-000000000001",
+                accountId: "00000000-0000-0000-0000-000000000001",
+                username: p.authorUsername || "aarav_social",
+                displayName: p.authorDisplayName || "Aarav Social",
+                interests: [],
+                hobbies: [],
+                languages: [],
+                allowDmsFrom: "everyone" as const,
+                showActivityStatus: true,
+                isPrivate: false,
+                createdAt: p.createdAt || new Date().toISOString(),
+                updatedAt: p.createdAt || new Date().toISOString(),
+              },
+              content: p.content,
+              postType: (p.mediaType === "video" ? "text" : p.mediaUrls?.length ? "image" : "text") as any,
+              mediaUrls: p.mediaUrls || [],
+              mediaType: (p.mediaType || "none") as any,
+              likesCount: p.likesCount || 0,
+              commentsCount: p.commentsCount || 0,
+              sharesCount: 0,
+              hasLiked: false,
+              userReaction: null,
+              isArchived: false,
+              createdAt: p.createdAt || new Date().toISOString(),
+              updatedAt: p.createdAt || new Date().toISOString(),
+              commentsList: [],
+            }));
+          return [...uniqueStored, ...prev];
+        });
+      }
+    } catch {}
+
+    const handleCustomPost = (e: any) => {
+      const p = e.detail;
+      if (!p) return;
+      const formattedPost: SocialPost & { commentsList: SocialComment[] } = {
+        id: p.id,
+        authorId: p.authorProfileId || "10000000-0000-0000-0000-000000000001",
+        author: {
+          id: p.authorProfileId || "10000000-0000-0000-0000-000000000001",
+          accountId: "00000000-0000-0000-0000-000000000001",
+          username: p.authorUsername || "aarav_social",
+          displayName: p.authorDisplayName || "Aarav Social",
+          interests: [],
+          hobbies: [],
+          languages: [],
+          allowDmsFrom: "everyone" as const,
+          showActivityStatus: true,
+          isPrivate: false,
+          createdAt: p.createdAt || new Date().toISOString(),
+          updatedAt: p.createdAt || new Date().toISOString(),
+        },
+        content: p.content,
+        postType: (p.mediaType === "video" ? "text" : p.mediaUrls?.length ? "image" : "text") as any,
+        mediaUrls: p.mediaUrls || [],
+        mediaType: (p.mediaType || "none") as any,
+        likesCount: 0,
+        commentsCount: 0,
+        sharesCount: 0,
+        hasLiked: false,
+        userReaction: null,
+        isArchived: false,
+        createdAt: p.createdAt || new Date().toISOString(),
+        updatedAt: p.createdAt || new Date().toISOString(),
+        commentsList: [],
+      };
+      setPosts((prev) => [formattedPost, ...prev]);
+      setShareToast("Post shared successfully!");
+      setTimeout(() => setShareToast(null), 3000);
+    };
+
+    window.addEventListener("balaga:new-post", handleCustomPost);
+    return () => window.removeEventListener("balaga:new-post", handleCustomPost);
+  }, []);
+
   // Handle post publish
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();

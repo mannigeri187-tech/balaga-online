@@ -54,15 +54,22 @@ export const WorldLayout: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Keep tab aligned when user switches worlds
+  // Keep tab aligned when user switches worlds (ONLY on activeWorld transition)
+  const prevWorldRef = React.useRef(activeWorld);
   React.useEffect(() => {
-    if (currentTab === "ai") {
-      setIsIntelligenceModalOpen(true);
+    if (prevWorldRef.current !== activeWorld) {
+      prevWorldRef.current = activeWorld;
       setCurrentTab(isSocial ? "feed" : "dashboard");
+    }
+  }, [activeWorld, isSocial]);
+
+  const handleTabChange = (tab: string) => {
+    if (tab === "ai") {
+      setIsIntelligenceModalOpen(true);
       return;
     }
-    setCurrentTab(isSocial ? "feed" : "dashboard");
-  }, [activeWorld, isSocial, currentTab]);
+    setCurrentTab(tab);
+  };
 
   const renderSocialContent = () => {
     switch (currentTab) {
@@ -136,13 +143,13 @@ export const WorldLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Top persistent header housing Top-Left Switcher & Top-Right Profile Dropdown */}
-      <Header onNavigateTab={setCurrentTab} />
+      <Header onNavigateTab={handleTabChange} />
 
       <div className="flex-1 flex pb-14 sm:pb-0">
         {/* World-specific left navigation (hidden on small mobile screens) */}
         <Sidebar
           currentTab={currentTab}
-          onTabChange={setCurrentTab}
+          onTabChange={handleTabChange}
           onCreateClick={() => setIsCreateModalOpen(true)}
         />
 
@@ -173,7 +180,7 @@ export const WorldLayout: React.FC = () => {
       {isSocial && (
         <nav className="sm:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-950/95 border-t border-slate-800/80 backdrop-blur-lg flex items-center justify-around z-40 px-2">
           <button
-            onClick={() => setCurrentTab("feed")}
+            onClick={() => handleTabChange("feed")}
             className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
               currentTab === "feed" ? "text-violet-400 font-bold" : "text-slate-400"
             }`}
@@ -182,7 +189,7 @@ export const WorldLayout: React.FC = () => {
             <span className="text-[10px]">Home</span>
           </button>
           <button
-            onClick={() => setCurrentTab("explore")}
+            onClick={() => handleTabChange("explore")}
             className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
               currentTab === "explore" ? "text-violet-400 font-bold" : "text-slate-400"
             }`}
@@ -198,7 +205,7 @@ export const WorldLayout: React.FC = () => {
             <span className="text-[10px]">Create</span>
           </button>
           <button
-            onClick={() => setCurrentTab("reels")}
+            onClick={() => handleTabChange("reels")}
             className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
               currentTab === "reels" ? "text-violet-400 font-bold" : "text-slate-400"
             }`}
@@ -207,7 +214,7 @@ export const WorldLayout: React.FC = () => {
             <span className="text-[10px]">Reels</span>
           </button>
           <button
-            onClick={() => setCurrentTab("profile")}
+            onClick={() => handleTabChange("profile")}
             className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
               currentTab === "profile" ? "text-violet-400 font-bold" : "text-slate-400"
             }`}
@@ -253,7 +260,7 @@ export const WorldLayout: React.FC = () => {
       <CommandPaletteModal
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        onNavigateTab={setCurrentTab}
+        onNavigateTab={handleTabChange}
       />
 
       {/* Balaga Intelligence Control Centre (Milestone 1) */}

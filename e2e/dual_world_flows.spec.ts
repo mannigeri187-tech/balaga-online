@@ -187,6 +187,49 @@ test.describe("Balaga.online Dual-World E2E Test Suite", () => {
     await page.locator("button:has-text('Close')").last().click();
     await expect(page.locator("h2:has-text('Balaga Intelligence')")).not.toBeVisible();
   });
+
+  test("9. Socializing Navigation: All sidebar tabs switch views seamlessly", async ({ page }) => {
+    // Ensure in Socializing realm
+    const switcherBtn = page.locator("button[aria-haspopup='true']");
+    const currentWorldText = await switcherBtn.textContent();
+    if (!currentWorldText?.includes("Socializing")) {
+      await switcherBtn.click();
+      await page.locator("button:has-text('Socializing')").first().click();
+      await page.waitForTimeout(500);
+    }
+
+    // 1. Search & Explore
+    await page.locator("aside button:has-text('Search & Explore')").click();
+    await expect(page.locator("input[placeholder*='Search accounts, reels']")).toBeVisible();
+
+    // 2. Reels
+    await page.locator("aside button:has-text('Reels')").click();
+    await expect(page.locator("h2:has-text('Reels & Short Videos')")).toBeVisible();
+
+    // 3. Communities
+    await page.locator("aside button:has-text('Communities')").click();
+    await expect(page.locator("button:has-text('Start a Circle')").first()).toBeVisible();
+
+    // 4. Events
+    await page.locator("aside button:has-text('Events')").click();
+    await expect(page.locator("button:has-text('Organize Event')").first()).toBeVisible();
+
+    // 5. Messages
+    await page.locator("aside button:has-text('Messages')").click();
+    await expect(page.locator("input[placeholder*='Search conversations']")).toBeVisible();
+
+    // 6. Notifications
+    await page.locator("aside button:has-text('Notifications')").click();
+    await expect(page.locator("h2:has-text('Notifications')")).toBeVisible();
+
+    // 7. Profile
+    await page.locator("aside button:has-text('Profile')").click();
+    await expect(page.locator("button:has-text('Edit Profile')").first()).toBeVisible();
+
+    // 8. Return Home (Feed)
+    await page.locator("aside button:has-text('Home')").click();
+    await expect(page.locator("text=Social Innovations Hub")).toBeVisible();
+  });
 });
 
 
