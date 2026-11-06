@@ -13,13 +13,30 @@ import {
   Globe,
   Users,
   AlertCircle,
+  Layers,
+  Camera,
 } from "lucide-react";
+
+export interface StoryAngle {
+  id: string;
+  contributorName: string;
+  angleLabel: string;
+  mediaUrl: string;
+  caption: string;
+}
+
+export interface ExtendedStory extends SocialStory {
+  isCoOpStack?: boolean;
+  stackTitle?: string;
+  eventLocation?: string;
+  angles?: StoryAngle[];
+}
 
 export const SocialStories: React.FC = () => {
   const { socialProfile } = useWorld();
 
   // Active 24h stories state
-  const [stories, setStories] = useState<SocialStory[]>([
+  const [stories, setStories] = useState<ExtendedStory[]>([
     {
       id: "story-1",
       authorId: socialProfile?.id || "10000000-0000-0000-0000-000000000001",
@@ -86,10 +103,68 @@ export const SocialStories: React.FC = () => {
       viewsCount: 8,
       createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
     },
+    {
+      id: "story-coop-1",
+      authorId: "10000000-0000-0000-0000-000000000003",
+      author: {
+        id: "10000000-0000-0000-0000-000000000003",
+        accountId: "00000000-0000-0000-0000-000000000003",
+        username: "deccan_cyclists",
+        displayName: "Deccan Squad (Co-Op)",
+        pronouns: "they/them",
+        broadLocation: "Bengaluru, Karnataka",
+        interests: ["Cycling", "Outdoor"],
+        hobbies: ["Endurance"],
+        languages: ["English", "Kannada"],
+        allowDmsFrom: "everyone",
+        showActivityStatus: true,
+        isPrivate: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      mediaUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80",
+      mediaType: "image",
+      caption: "Nandi Hills Sunrise Loop • Multi-Angle Co-Op Live Stack",
+      audience: "everyone",
+      expiresAt: new Date(Date.now() + 20 * 3600000).toISOString(),
+      viewsCount: 64,
+      createdAt: new Date(Date.now() - 3 * 3600000).toISOString(),
+      isCoOpStack: true,
+      stackTitle: "Nandi Sunrise Century 🚴",
+      eventLocation: "Nandi Foothills, Bengaluru",
+      angles: [
+        {
+          id: "ang-1",
+          contributorName: "Kabir Menon",
+          angleLabel: "Handlebar Cam 🎥",
+          mediaUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80",
+          caption: "Climbing hairpin 24. Heavy headwind but the morning light is insane! 🌄",
+        },
+        {
+          id: "ang-2",
+          contributorName: "Priya Rao",
+          angleLabel: "Summit Viewpoint ⛰️",
+          mediaUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+          caption: "Waiting at Tipu's Drop for the peloton. Clouds are below us today! ☁️",
+        },
+        {
+          id: "ang-3",
+          contributorName: "Aarav Social",
+          angleLabel: "Breakfast Stop ☕",
+          mediaUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80",
+          caption: "Hot thatte idli and filter coffee at foothills canteen. 60km done! 🥞",
+        },
+      ],
+    },
   ]);
 
   // Modal States
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [activeAngleIndex, setActiveAngleIndex] = useState<number>(0);
+  const [isContributeAngleOpen, setIsContributeAngleOpen] = useState(false);
+  const [newAngleLabel, setNewAngleLabel] = useState("");
+  const [newAngleMediaUrl, setNewAngleMediaUrl] = useState("");
+  const [newAngleCaption, setNewAngleCaption] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewerListOpen, setIsViewerListOpen] = useState(false);
   const [storyReply, setStoryReply] = useState("");
@@ -101,6 +176,9 @@ export const SocialStories: React.FC = () => {
   const [newAudience, setNewAudience] = useState<"everyone" | "connections">("everyone");
 
   const currentViewingStory = activeStoryIndex !== null ? stories[activeStoryIndex] : null;
+  const activeAngle = currentViewingStory?.isCoOpStack && currentViewingStory.angles
+    ? currentViewingStory.angles[activeAngleIndex] || currentViewingStory.angles[0]
+    : null;
   const isAuthor = currentViewingStory && socialProfile && currentViewingStory.authorId === socialProfile.id;
 
   // Mock viewers for author-only view
@@ -113,6 +191,7 @@ export const SocialStories: React.FC = () => {
 
   const handleNextStory = () => {
     if (activeStoryIndex === null) return;
+    setActiveAngleIndex(0);
     if (activeStoryIndex < stories.length - 1) {
       setActiveStoryIndex(activeStoryIndex + 1);
     } else {
@@ -124,11 +203,38 @@ export const SocialStories: React.FC = () => {
 
   const handlePrevStory = () => {
     if (activeStoryIndex === null) return;
+    setActiveAngleIndex(0);
     if (activeStoryIndex > 0) {
       setActiveStoryIndex(activeStoryIndex - 1);
     }
     setStoryReply("");
     setReplySentSuccess(false);
+  };
+
+  const handleContributeAngle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAngleMediaUrl.trim() || !newAngleLabel.trim() || activeStoryIndex === null) return;
+
+    const newAngle: StoryAngle = {
+      id: `ang-${Date.now()}`,
+      contributorName: socialProfile?.displayName || "You",
+      angleLabel: newAngleLabel.trim(),
+      mediaUrl: newAngleMediaUrl.trim(),
+      caption: newAngleCaption.trim() || "Added a perspective to this Co-Op Stack! 📸",
+    };
+
+    setStories((prev) => {
+      const copy = [...prev];
+      const target = { ...copy[activeStoryIndex] };
+      target.angles = [...(target.angles || []), newAngle];
+      copy[activeStoryIndex] = target;
+      return copy;
+    });
+
+    setIsContributeAngleOpen(false);
+    setNewAngleLabel("");
+    setNewAngleMediaUrl("");
+    setNewAngleCaption("");
   };
 
   const handleCreateStory = (e: React.FormEvent) => {
@@ -220,6 +326,12 @@ export const SocialStories: React.FC = () => {
                 alt="Story"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
+              {story.isCoOpStack && (
+                <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-600/90 text-white text-[9px] font-bold shadow-md backdrop-blur-sm border border-violet-400/40">
+                  <Layers className="w-2.5 h-2.5" />
+                  <span>Co-Op ({story.angles?.length || 1})</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent p-3 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -311,11 +423,47 @@ export const SocialStories: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* S11: Co-Op Story Stacks Multi-Angle Switcher */}
+              {currentViewingStory.isCoOpStack && currentViewingStory.angles && (
+                <div className="pt-2 space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] text-slate-300">
+                    <div className="flex items-center gap-1.5 font-semibold text-violet-300">
+                      <Layers className="w-3.5 h-3.5 text-violet-400" />
+                      <span>{currentViewingStory.stackTitle || "Co-Op Multi-Angle Stack"}</span>
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-mono">{currentViewingStory.angles.length} Perspectives</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none">
+                    {currentViewingStory.angles.map((ang, aIdx) => (
+                      <button
+                        key={ang.id}
+                        onClick={() => setActiveAngleIndex(aIdx)}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide shrink-0 transition-all ${
+                          activeAngleIndex === aIdx
+                            ? "bg-violet-600 text-white shadow ring-1 ring-violet-400"
+                            : "bg-slate-900/90 text-slate-300 hover:bg-slate-800 border border-slate-700/60"
+                        }`}
+                      >
+                        {ang.angleLabel}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setIsContributeAngleOpen(true)}
+                      className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 shrink-0 flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Angle</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Story Media */}
             <img
-              src={currentViewingStory.mediaUrl}
+              src={activeAngle ? activeAngle.mediaUrl : currentViewingStory.mediaUrl}
               alt="Story View"
               className="w-full h-full object-cover"
             />
@@ -336,12 +484,22 @@ export const SocialStories: React.FC = () => {
             </button>
 
             {/* Bottom Caption & Reply Bar */}
-            <div className="absolute bottom-0 inset-x-0 p-4 z-10 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent space-y-3">
-              {currentViewingStory.caption && (
+            <div className="absolute bottom-0 inset-x-0 p-4 z-10 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent space-y-2">
+              {activeAngle ? (
+                <div className="space-y-0.5">
+                  <div className="text-[10px] font-bold text-violet-300 flex items-center gap-1">
+                    <Camera className="w-3 h-3 text-emerald-400" />
+                    <span>Angle by {activeAngle.contributorName}</span>
+                  </div>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    {activeAngle.caption}
+                  </p>
+                </div>
+              ) : currentViewingStory.caption ? (
                 <p className="text-xs text-slate-200 leading-relaxed font-medium">
                   {currentViewingStory.caption}
                 </p>
-              )}
+              ) : null}
 
               {/* Reply Input (visible to non-author) */}
               {!isAuthor ? (
@@ -379,6 +537,89 @@ export const SocialStories: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* INLINE CONTRIBUTE ANGLE SHEET (S11) */}
+            {isContributeAngleOpen && (
+              <div className="absolute inset-0 z-30 bg-black/95 backdrop-blur-md p-5 flex flex-col justify-center animate-in fade-in">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-100">
+                      <Camera className="w-4 h-4 text-emerald-400" />
+                      <span>Contribute an Angle to Stack</span>
+                    </div>
+                    <button
+                      onClick={() => setIsContributeAngleOpen(false)}
+                      className="p-1 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400">
+                    Add your perspective to this co-op story stack so viewers can switch to your angle!
+                  </p>
+
+                  <form onSubmit={handleContributeAngle} className="space-y-2.5 pt-1">
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-300 block mb-1">
+                        Angle Title (e.g. Finish Line 🏁)
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Finish Line 🏁"
+                        value={newAngleLabel}
+                        onChange={(e) => setNewAngleLabel(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-300 block mb-1">
+                        Photo / Media URL
+                      </label>
+                      <input
+                        type="url"
+                        required
+                        placeholder="https://..."
+                        value={newAngleMediaUrl}
+                        onChange={(e) => setNewAngleMediaUrl(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-semibold text-slate-300 block mb-1">
+                        Perspective Caption
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="What happened from your angle?"
+                        value={newAngleCaption}
+                        onChange={(e) => setNewAngleCaption(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsContributeAngleOpen(false)}
+                        className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold"
+                      >
+                        Publish Angle
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

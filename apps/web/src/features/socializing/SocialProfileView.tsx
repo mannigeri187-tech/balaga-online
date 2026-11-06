@@ -40,11 +40,13 @@ import {
   Moon,
   ShieldCheck,
   Globe,
+  Database,
 } from "lucide-react";
 import { getBuilderCardByUsername } from "./socialAccountsData";
 import { MonkModeModal } from "./MonkModeModal";
 import { TrustFingerprintModal } from "./TrustFingerprintModal";
 import { UniversalPortalModal } from "./UniversalPortalModal";
+import { DataExportModal } from "./DataExportModal";
 
 interface SocialProfileViewProps {
   profile?: SocialProfile | null;
@@ -78,6 +80,7 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   const [isMonkModalOpen, setIsMonkModalOpen] = useState(false);
   const [isTrustModalOpen, setIsTrustModalOpen] = useState(false);
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
+  const [isDataExportModalOpen, setIsDataExportModalOpen] = useState(false);
   const [isMonkModeActive, setIsMonkModeActive] = useState<boolean>(() => {
     return localStorage.getItem("balaga_monk_mode") === "true";
   });
@@ -1876,6 +1879,17 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
             <button
               onClick={() => {
                 setIsSettingsMenuOpen(false);
+                setIsDataExportModalOpen(true);
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-teal-300 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <Database className="w-4 h-4 text-teal-400" />
+              <span>Self-sovereign data export</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
                 logout();
               }}
               className="w-full py-3.5 px-4 text-xs font-semibold text-rose-400 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
@@ -2311,6 +2325,14 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         avatarUrl={profile.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"}
         bio={profile.bio || "Digital craftsman & builder on Balaga."}
         isBuilder={!!builderCard}
+      />
+
+      {/* SELF-SOVEREIGN DATA EXPORT (S26) */}
+      <DataExportModal
+        isOpen={isDataExportModalOpen}
+        onClose={() => setIsDataExportModalOpen(false)}
+        username={profile.username}
+        displayName={profile.displayName}
       />
     </div>
   );
