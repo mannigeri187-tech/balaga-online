@@ -31,12 +31,26 @@ import { BuildSpacesView } from "../../features/founders/BuildSpacesView";
 import { VerificationCentreView } from "../../features/founders/VerificationCentreView";
 import { PremiumCentreView } from "../../features/founders/PremiumCentreView";
 import { CreateMediaModal } from "../../features/socializing/CreateMediaModal";
+import { CommandPaletteModal } from "../CommandPaletteModal";
 
 export const WorldLayout: React.FC = () => {
   const { activeWorld, isLoading } = useWorld();
   const isSocial = activeWorld === WORLDS.SOCIALIZING;
   const [currentTab, setCurrentTab] = useState<string>("feed");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Global Ctrl+K / Cmd+K listener
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Keep tab aligned when user switches worlds
   React.useEffect(() => {
@@ -197,6 +211,15 @@ export const WorldLayout: React.FC = () => {
         </nav>
       )}
 
+      {/* Floating Ctrl+K Trigger Pill */}
+      <button
+        onClick={() => setIsCommandPaletteOpen(true)}
+        className="fixed bottom-20 sm:bottom-6 left-6 z-40 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 shadow-xl backdrop-blur-md text-xs font-mono text-slate-300 flex items-center gap-2 group transition"
+      >
+        <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
+        <span>⌘K Command Menu</span>
+      </button>
+
       {/* Create Post / Reel Modal */}
       {isSocial && (
         <CreateMediaModal
@@ -204,6 +227,13 @@ export const WorldLayout: React.FC = () => {
           onClose={() => setIsCreateModalOpen(false)}
         />
       )}
+
+      {/* Global Command Palette */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigateTab={setCurrentTab}
+      />
     </div>
   );
 };
