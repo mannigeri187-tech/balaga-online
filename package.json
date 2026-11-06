@@ -10,9 +10,10 @@
     "dev:web": "npm --workspace=apps/web run dev",
     "dev:api": "npm --workspace=apps/api run dev",
     "build": "npm --workspaces run build",
+    "build:api": "npm --workspace=@platform/config run build && npm --workspace=@platform/shared-types run build && npm --workspace=@platform/validation run build && npm --workspace=@platform/api run build",
     "test": "npm --workspaces run test"
   },
-  "devDependencies": {
+  "dependencies": {
     "typescript": "^5.4.5"
   }
 }
