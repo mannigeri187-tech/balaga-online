@@ -28,12 +28,14 @@ import {
   ShieldAlert,
   Code,
   TrendingUp,
+  Bot,
 } from "lucide-react";
 import { WORLDS } from "@platform/config";
 import { FlashHangoutRadar } from "./FlashHangoutRadar";
 import { GuardianSafeJourneyModal } from "./GuardianSafeJourneyModal";
 import { MicroAppsContainerModal } from "./MicroAppsContainerModal";
 import { PredictionStakesModal } from "./PredictionStakesModal";
+import { AutonomousSocialTwinModal } from "./AutonomousSocialTwinModal";
 import { translateWithBhasha } from "./bhashaEngine";
 
 import {
@@ -59,6 +61,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   const [isGuardianModalOpen, setIsGuardianModalOpen] = useState(false);
   const [isMicroAppsModalOpen, setIsMicroAppsModalOpen] = useState(false);
   const [isPredictionModalOpen, setIsPredictionModalOpen] = useState(false);
+  const [isTwinModalOpen, setIsTwinModalOpen] = useState(false);
   const [translatedPostIds, setTranslatedPostIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -823,7 +826,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <Button
             size="sm"
             onClick={() => setIsMicroAppsModalOpen(true)}
@@ -839,6 +842,14 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
             className="bg-slate-900 border border-emerald-500/40 text-emerald-300 hover:bg-slate-800 text-xs shrink-0"
           >
             Prediction Stakes 📈
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsTwinModalOpen(true)}
+            icon={<Bot className="w-3.5 h-3.5 text-violet-400" />}
+            className="bg-slate-900 border border-violet-500/40 text-violet-300 hover:bg-slate-800 text-xs shrink-0"
+          >
+            Social Twin 🤖
           </Button>
         </div>
       </div>
@@ -1872,6 +1883,12 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
       <PredictionStakesModal
         isOpen={isPredictionModalOpen}
         onClose={() => setIsPredictionModalOpen(false)}
+      />
+
+      {/* AUTONOMOUS SOCIAL TWIN (S25) */}
+      <AutonomousSocialTwinModal
+        isOpen={isTwinModalOpen}
+        onClose={() => setIsTwinModalOpen(false)}
       />
     </div>
   );
