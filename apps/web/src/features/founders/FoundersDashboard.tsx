@@ -26,6 +26,8 @@ import {
   Check,
   GitFork,
   Laptop,
+  Trophy,
+  Zap,
 } from "lucide-react";
 import {
   FounderPublicProfileModal,
@@ -33,6 +35,8 @@ import {
 } from "./FounderPublicProfileModal";
 import { ForkableBlueprintsModal } from "./ForkableBlueprintsModal";
 import { CodeCastCanvasModal } from "./CodeCastCanvasModal";
+import { HackathonSquadModal } from "./HackathonSquadModal";
+import { SpeedMentorshipModal } from "./SpeedMentorshipModal";
 
 interface FoundersDashboardProps {
   onNavigateTab?: (tab: string) => void;
@@ -94,6 +98,8 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isSubmitProductOpen, setIsSubmitProductOpen] = useState(false);
   const [isBlueprintsModalOpen, setIsBlueprintsModalOpen] = useState(false);
   const [isCodeCastModalOpen, setIsCodeCastModalOpen] = useState(false);
+  const [isHackathonModalOpen, setIsHackathonModalOpen] = useState(false);
+  const [isSpeedMentorshipOpen, setIsSpeedMentorshipOpen] = useState(false);
   const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
   const [selectedProposalToCounter, setSelectedProposalToCounter] = useState<any | null>(null);
   const [counterCommercialTerms, setCounterCommercialTerms] = useState("20% Mutual Referral Share + Co-branding");
@@ -759,6 +765,58 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
       </div>
 
       {/* ========================================================
+          NEW FOUNDERS INNOVATIONS SHOWCASE ROW
+      ======================================================== */}
+      <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-cyan-950/40 border border-emerald-500/30 rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+              New Founders Innovations (Live)
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Next-generation tools for Indian founders: forkable templates, live webgl code cast, hackathon squad builder, and 120s speed mentorship.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            onClick={() => setIsBlueprintsModalOpen(true)}
+            icon={<GitFork className="w-3.5 h-3.5 text-emerald-400" />}
+            className="bg-slate-900 border border-emerald-500/40 text-emerald-300 hover:bg-slate-800 text-xs"
+          >
+            Fork Blueprints ⚡
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsCodeCastModalOpen(true)}
+            icon={<Laptop className="w-3.5 h-3.5 text-cyan-400" />}
+            className="bg-slate-900 border border-cyan-500/40 text-cyan-300 hover:bg-slate-800 text-xs"
+          >
+            Code Cast 🖥️
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsHackathonModalOpen(true)}
+            icon={<Trophy className="w-3.5 h-3.5 text-amber-400" />}
+            className="bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-slate-800 text-xs"
+          >
+            Hackathon Squads 🏆
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsSpeedMentorshipOpen(true)}
+            icon={<Zap className="w-3.5 h-3.5 text-yellow-400" />}
+            className="bg-slate-900 border border-yellow-500/40 text-yellow-300 hover:bg-slate-800 text-xs"
+          >
+            2-Min Mentorship ⚡
+          </Button>
+        </div>
+      </div>
+
+      {/* ========================================================
           2. QUICK STATISTICS (6 Interactive Real-Data Cards)
       ======================================================== */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -1396,6 +1454,20 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
               >
                 <span className="block font-semibold text-cyan-400 group-hover:text-cyan-300">🖥️ Live Code Cast</span>
                 <span className="text-[10px] text-slate-500">WebGL & CLI demo</span>
+              </button>
+              <button
+                onClick={() => setIsHackathonModalOpen(true)}
+                className="p-2.5 bg-slate-950/70 border border-amber-500/40 hover:border-amber-500 hover:bg-slate-900 text-left rounded-xl transition-all group"
+              >
+                <span className="block font-semibold text-amber-400 group-hover:text-amber-300">🏆 Hackathon Squads</span>
+                <span className="text-[10px] text-slate-500">Role-locked teams</span>
+              </button>
+              <button
+                onClick={() => setIsSpeedMentorshipOpen(true)}
+                className="p-2.5 bg-slate-950/70 border border-yellow-500/40 hover:border-yellow-500 hover:bg-slate-900 text-left rounded-xl transition-all group"
+              >
+                <span className="block font-semibold text-yellow-400 group-hover:text-yellow-300">⚡ 2-Min Mentorship</span>
+                <span className="text-[10px] text-slate-500">120s sparks</span>
               </button>
             </div>
           </div>
@@ -2298,6 +2370,22 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
         isOpen={isCodeCastModalOpen}
         onClose={() => setIsCodeCastModalOpen(false)}
         projectName={startups[activeStartupIdx]?.name || "NovaTech Systems"}
+      />
+
+      {/* ========================================================
+          HACKATHON SQUAD MATCHMAKER (F17)
+      ======================================================== */}
+      <HackathonSquadModal
+        isOpen={isHackathonModalOpen}
+        onClose={() => setIsHackathonModalOpen(false)}
+      />
+
+      {/* ========================================================
+          2-MINUTE SPEED MENTORSHIP SPARKS (F18)
+      ======================================================== */}
+      <SpeedMentorshipModal
+        isOpen={isSpeedMentorshipOpen}
+        onClose={() => setIsSpeedMentorshipOpen(false)}
       />
     </div>
   );
