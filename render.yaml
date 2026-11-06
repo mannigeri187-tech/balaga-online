@@ -12,7 +12,7 @@ services:
       - key: PORT
         value: 10000
       - key: ALLOWED_ORIGINS
-        value: https://balaga.online,https://www.balaga.online
+        value: https://balaga.online,https://www.balaga.online,https://balagaonline.vercel.app
       - key: CORS_ORIGIN
         value: https://balaga.online
       - key: ENABLE_DEV_MOCK_AUTH
