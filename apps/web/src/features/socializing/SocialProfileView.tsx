@@ -32,7 +32,12 @@ import {
   Upload,
   Shield,
   Copy,
+  Sparkles,
+  RotateCw,
+  Rocket,
+  IndianRupee,
 } from "lucide-react";
+import { getBuilderCardByUsername } from "./socialAccountsData";
 
 interface SocialProfileViewProps {
   profile?: SocialProfile | null;
@@ -45,15 +50,17 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   isSelf = true,
   onNavigateTab,
 }) => {
-  const { socialProfile } = useWorld();
+  const { socialProfile, switchWorld } = useWorld();
   const { logout } = useAuth();
   const [profile, setProfile] = useState<SocialProfile | null>(
     propProfile || socialProfile || null
   );
 
-  const [activeTab, setActiveTab] = useState<"posts" | "saved" | "tagged">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "showcase" | "saved" | "tagged">("posts");
+  const [isFlippedToBuilder, setIsFlippedToBuilder] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const builderCard = getBuilderCardByUsername(profile?.username || "aarav_social");
 
   // Settings & Modals State (Instagram-style Settings Action Sheet matching Pic 3)
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
@@ -199,6 +206,68 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   ]);
 
   const [selectedPost, setSelectedPost] = useState<typeof userPosts[0] | null>(null);
+
+  // 5. Creator Showcase Items (Curated personal portfolio of art, photo, design, essays)
+  const [showcaseItems] = useState([
+    {
+      id: "sc-1",
+      title: "Cubbon Botanical Flora",
+      category: "Watercolor & Gouache",
+      imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=1000&q=80",
+      description: "Field studies of bamboo shoots and teak bark under natural morning light on 300gsm cold press paper.",
+      tools: ["Cold Press Arches 300gsm", "Daniel Smith Watercolors", "Escoda Sable"],
+      year: "2026",
+      appreciationsCount: 142,
+    },
+    {
+      id: "sc-2",
+      title: "Monsoon Reflections over Bangalore",
+      category: "35mm Analog Photography",
+      imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1000&q=80",
+      description: "Street reflections, wet asphalt, and amber headlights around Brigade Road after a sudden evening downpour.",
+      tools: ["Leica M6", "Voigtlander 35mm f/1.4", "Kodak Portra 400"],
+      year: "2026",
+      appreciationsCount: 289,
+    },
+    {
+      id: "sc-3",
+      title: "Balaga Design Tokens & Spatial UI",
+      category: "Digital Product Architecture",
+      imageUrl: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=1000&q=80",
+      description: "A dark-mode first, tactile design language engineered for high-density multi-world interaction and low cognitive load.",
+      tools: ["Figma", "Tailwind CSS", "CSS 3D Transforms"],
+      year: "2026",
+      appreciationsCount: 318,
+    },
+  ]);
+
+  // 6. Actionable Living Collections (Saved inspiration connected to real-world actions)
+  const [livingCollections] = useState([
+    {
+      id: "col-1",
+      title: "Quiet Bangalore Cafes & Green Corners",
+      itemsCount: 3,
+      coverUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+      actionType: "radar",
+      actionLabel: "Launch Radar Beacon ⚡",
+    },
+    {
+      id: "col-2",
+      title: "Design Tokens & Motion Studies",
+      itemsCount: 4,
+      coverUrl: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=800&q=80",
+      actionType: "checklist",
+      actionLabel: "Review Checklist 📋",
+    },
+    {
+      id: "col-3",
+      title: "Literature & Regional Essay Vault",
+      itemsCount: 2,
+      coverUrl: "https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?w=800&q=80",
+      actionType: "circle",
+      actionLabel: "Open Reading Circle ☕",
+    },
+  ]);
 
   // Handle Share Note
   const handleShareNote = (e: React.FormEvent) => {
@@ -456,6 +525,19 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                   View archive
                 </Button>
                 <button
+                  type="button"
+                  onClick={() => setIsFlippedToBuilder(!isFlippedToBuilder)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
+                    isFlippedToBuilder
+                      ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                      : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
+                  }`}
+                  title="3D Card Flip to Founders Builder identity"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>{isFlippedToBuilder ? "Personal" : "3D Flip 🔄"}</span>
+                </button>
+                <button
                   onClick={() => setIsSettingsMenuOpen(true)}
                   className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
                   title="Profile Settings"
@@ -495,6 +577,21 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 >
                   Message
                 </Button>
+                {builderCard.isPublicBuilder && (
+                  <button
+                    type="button"
+                    onClick={() => setIsFlippedToBuilder(!isFlippedToBuilder)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
+                      isFlippedToBuilder
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                        : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
+                    }`}
+                    title="3D Card Flip to Founders Builder identity"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>{isFlippedToBuilder ? "Personal" : "3D Flip 🔄"}</span>
+                  </button>
+                )}
                 <button className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
                   <MoreHorizontal className="w-5 h-5" />
                 </button>
@@ -578,6 +675,101 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         </div>
       </header>
 
+      {/* 3D BUILDER CARD PREVIEW (FLIPPED STATE) */}
+      {isFlippedToBuilder && (
+        <div className="bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-500/60 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-amber-400" />
+                  Verified Builder Identity
+                </span>
+                <span className="text-xs font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded">
+                  {builderCard.stage}
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                {profile.displayName}
+                <span className="text-amber-400 text-sm font-normal">(@{profile.username})</span>
+              </h2>
+              <p className="text-sm font-medium text-amber-200/90">
+                {builderCard.headline}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsFlippedToBuilder(false)}
+              className="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1 self-start"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>Flip Back to Personal</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pt-4 border-t border-slate-800">
+            <div>
+              <span className="text-[11px] font-mono uppercase text-slate-400">Tech Stack & Tools</span>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {builderCard.techStack.map((tech) => (
+                  <span
+                    key={tech}
+                    className="text-xs bg-slate-800 text-amber-200/90 px-2.5 py-1 rounded-md border border-amber-500/20"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[11px] font-mono uppercase text-slate-400">Superpowers</span>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {builderCard.superpowers.map((p) => (
+                  <span
+                    key={p}
+                    className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700"
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {builderCard.lookingFor && (
+            <div className="mt-4 p-3 bg-slate-950/60 rounded-lg border border-slate-800 text-xs text-slate-300">
+              <span className="font-semibold text-amber-300">Looking for: </span>
+              {builderCard.lookingFor}
+            </div>
+          )}
+
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
+            <span className="text-xs text-slate-400 flex items-center gap-1.5">
+              <span>🔒 Firewall: Separated from personal social feeds</span>
+            </span>
+
+            <div className="flex items-center gap-2">
+              <a
+                href={`upi://pay?pa=aarav.social@okhdfcbank&pn=BalagaBuilder&cu=INR&tn=Appreciating Builder ${encodeURIComponent(profile.displayName)}`}
+                className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+              >
+                <IndianRupee className="w-3.5 h-3.5" />
+                <span>UPI Shabaash</span>
+              </a>
+              <Button
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center gap-1.5"
+                onClick={() => switchWorld("founders")}
+              >
+                <Rocket className="w-3.5 h-3.5" />
+                <span>Open in Founders Realm</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. STORY HIGHLIGHTS (Clickable to open stories viewer) */}
       <section className="pt-4 overflow-x-auto pb-2 scrollbar-none">
         <div className="flex items-center gap-6 sm:gap-8 px-2">
@@ -635,9 +827,9 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         </div>
       ) : (
         <>
-          {/* TABS (POSTS, SAVED, TAGGED) */}
+          {/* TABS (POSTS, SHOWCASE, SAVED / COLLECTIONS, TAGGED) */}
           <div className="border-t border-slate-800">
-            <div className="flex items-center justify-center gap-12 sm:gap-16 text-xs font-semibold uppercase tracking-wider">
+            <div className="flex items-center justify-center gap-6 sm:gap-14 text-xs font-semibold uppercase tracking-wider">
               <button
                 onClick={() => setActiveTab("posts")}
                 className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
@@ -650,15 +842,26 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 <span>Posts</span>
               </button>
               <button
+                onClick={() => setActiveTab("showcase")}
+                className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
+                  activeTab === "showcase"
+                    ? "border-amber-400 text-amber-300"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Showcase ✨</span>
+              </button>
+              <button
                 onClick={() => setActiveTab("saved")}
                 className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
                   activeTab === "saved"
-                    ? "border-white text-white"
+                    ? "border-violet-400 text-violet-300"
                     : "border-transparent text-slate-500 hover:text-slate-300"
                 }`}
               >
                 <Bookmark className="w-3.5 h-3.5" />
-                <span>Saved</span>
+                <span>Collections 📌</span>
               </button>
               <button
                 onClick={() => setActiveTab("tagged")}
@@ -705,28 +908,194 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
             </div>
           )}
 
-          {/* SAVED TAB */}
-          {activeTab === "saved" && (
-            <div className="grid grid-cols-3 gap-1 md:gap-6">
-              {userPosts.slice(0, 3).map((post) => (
-                <div
-                  key={post.id}
-                  onClick={() => setSelectedPost(post)}
-                  className="relative aspect-square bg-slate-900 overflow-hidden group cursor-pointer"
-                >
-                  <img
-                    src={post.imageUrl}
-                    alt={post.caption}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 sm:gap-6 text-white text-xs sm:text-sm font-bold transition-opacity duration-150">
-                    <span className="flex items-center gap-1.5">
-                      <Bookmark className="w-4 h-4 fill-white" />
-                      <span>Saved</span>
-                    </span>
+          {/* CREATOR SHOWCASE (S10) */}
+          {activeTab === "showcase" && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-amber-500/10 via-slate-900 to-violet-500/10 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-500/40">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      Creator Showcase
+                      <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-mono">
+                        MUSEUM-GRADE
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Curated original works, field studies, and creative craft without commercialization or algorithm penalties.
+                    </p>
                   </div>
                 </div>
-              ))}
+                {isSelf && (
+                  <Button
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold shrink-0"
+                    onClick={() => alert("Feature: Add piece to your Showcase is ready for your uploads!")}
+                  >
+                    + Add New Piece
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {showcaseItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 rounded-xl overflow-hidden shadow-lg transition-all flex flex-col group"
+                  >
+                    <div className="relative aspect-[16/10] bg-slate-950 overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 text-amber-300 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span>{item.category}</span>
+                      </div>
+                      <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded-full">
+                        {item.year}
+                      </div>
+                    </div>
+
+                    <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                      <div>
+                        <h4 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+
+                      {/* Mediums & Tools */}
+                      <div className="space-y-1.5 pt-2 border-t border-slate-800">
+                        <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400">
+                          Medium & Tools:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {item.tools.map((tool) => (
+                            <span
+                              key={tool}
+                              className="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700/60"
+                            >
+                              {tool}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 text-xs text-slate-400">
+                        <span className="flex items-center gap-1.5 text-slate-300 font-medium">
+                          <Heart className="w-3.5 h-3.5 text-pink-400 fill-pink-400/20" />
+                          <span>{item.appreciationsCount} appreciations</span>
+                        </span>
+
+                        <a
+                          href={`upi://pay?pa=aarav.social@okhdfcbank&pn=BalagaCreator&cu=INR&tn=Appreciating ${encodeURIComponent(item.title)} on Balaga Showcase`}
+                          className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-lg font-semibold flex items-center gap-1 transition-colors"
+                          title="Send direct Shabaash tip (0% fee)"
+                        >
+                          <IndianRupee className="w-3 h-3 text-amber-400" />
+                          <span>Shabaash ⚡</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ACTIONABLE LIVING COLLECTIONS (S12) */}
+          {activeTab === "saved" && (
+            <div className="space-y-6">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-violet-500/20 text-violet-300 flex items-center justify-center shrink-0 border border-violet-500/40">
+                    <Bookmark className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      Actionable Living Collections
+                      <span className="text-[10px] bg-violet-500/20 text-violet-300 border border-violet-500/30 px-1.5 py-0.5 rounded font-mono">
+                        ACTIONABLE
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Curations connected to live action triggers — turn passive bookmarks into meetups, checklists, and circles.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Collections Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {livingCollections.map((col) => (
+                  <div
+                    key={col.id}
+                    className="bg-slate-900 border border-slate-800 hover:border-violet-500/40 rounded-xl overflow-hidden p-3.5 space-y-3 transition-all group"
+                  >
+                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-slate-950">
+                      <img
+                        src={col.coverUrl}
+                        alt={col.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <span className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                        {col.itemsCount} items
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs font-bold text-white line-clamp-1 group-hover:text-violet-300">
+                        {col.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Living Board • Updated this week
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => alert(`Triggering collection action: ${col.actionLabel}`)}
+                      className="w-full py-1.5 px-3 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 text-violet-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <span>{col.actionLabel}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-slate-800">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                  All Saved Posts
+                </h4>
+                <div className="grid grid-cols-3 gap-1 md:gap-6">
+                  {userPosts.slice(0, 3).map((post) => (
+                    <div
+                      key={post.id}
+                      onClick={() => setSelectedPost(post)}
+                      className="relative aspect-square bg-slate-900 overflow-hidden group cursor-pointer"
+                    >
+                      <img
+                        src={post.imageUrl}
+                        alt={post.caption}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 sm:gap-6 text-white text-xs sm:text-sm font-bold transition-opacity duration-150">
+                        <span className="flex items-center gap-1.5">
+                          <Bookmark className="w-4 h-4 fill-white" />
+                          <span>Saved</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
