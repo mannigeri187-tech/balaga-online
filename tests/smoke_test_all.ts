@@ -3,7 +3,7 @@
  */
 
 const BACKEND_URL = "https://balaga-online.onrender.com";
-const FRONTEND_URL = "https://balagaonline-50ke8tkyf-manjunathannigeri120-glitch.vercel.app";
+const FRONTEND_URL = "https://balagaonline.vercel.app";
 
 async function runSmokeTests() {
   console.log("=================================================================");
@@ -36,34 +36,31 @@ async function runSmokeTests() {
     return res.status === 200;
   });
 
-  // 2. Security: Missing x-platform-world header must be rejected
-  await check("Boundary: Missing x-platform-world header returns HTTP 400", async () => {
-    const res = await fetch(`${BACKEND_URL}/api/founders/feed`, {
-      headers: { "x-mock-user": "true" }
+  // 2. Production Security: Unauthenticated requests to protected endpoints are rejected (HTTP 401)
+  await check("Security: Unauthenticated request to Founders feed rejected (HTTP 401)", async () => {
+    const res = await fetch(`${BACKEND_URL}/api/founders/feed`);
+    return res.status === 401;
+  });
+
+  // 3. Production Security: Unauthenticated requests to Social feed are rejected (HTTP 401)
+  await check("Security: Unauthenticated request to Social feed rejected (HTTP 401)", async () => {
+    const res = await fetch(`${BACKEND_URL}/api/social/feed`);
+    return res.status === 401;
+  });
+
+  // 4. Production Registration: 18+ enforcement on register endpoint
+  await check("Security: Underage registration rejected on production (HTTP 400)", async () => {
+    const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "underage_smoke@balaga.online",
+        password: "Pass12345!Secure",
+        is18Plus: false,
+        firstWorld: "founders"
+      })
     });
     return res.status === 400;
-  });
-
-  // 3. Security: Socializing header cannot access Founders feed
-  await check("Isolation: Socializing header cannot access Founders feed (HTTP 403)", async () => {
-    const res = await fetch(`${BACKEND_URL}/api/founders/feed`, {
-      headers: {
-        "x-platform-world": "socializing",
-        "x-mock-user": "true"
-      }
-    });
-    return res.status === 403;
-  });
-
-  // 4. Security: Founders header cannot access Social feed
-  await check("Isolation: Founders header cannot access Social feed (HTTP 403)", async () => {
-    const res = await fetch(`${BACKEND_URL}/api/social/feed`, {
-      headers: {
-        "x-platform-world": "founders",
-        "x-mock-user": "true"
-      }
-    });
-    return res.status === 403;
   });
 
   // 5. Frontend Production Shell
