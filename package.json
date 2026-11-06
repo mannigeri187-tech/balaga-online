@@ -11,9 +11,14 @@
     "dev:api": "npm --workspace=apps/api run dev",
     "build": "npm --workspaces run build",
     "build:api": "npm --workspace=@platform/config run build && npm --workspace=@platform/shared-types run build && npm --workspace=@platform/validation run build && npm --workspace=@platform/api run build",
-    "test": "npx tsx tests/verify_isolation.ts"
+    "test": "npx tsx tests/verify_isolation.ts",
+    "test:smoke": "npx tsx tests/smoke_test_all.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0"
   }
 }

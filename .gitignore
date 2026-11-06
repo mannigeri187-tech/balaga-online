@@ -32,3 +32,6 @@ Thumbs.db
 .idea
 
 .vercel
+
+test-results/
+playwright-report/
