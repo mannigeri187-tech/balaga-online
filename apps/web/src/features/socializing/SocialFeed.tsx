@@ -26,10 +26,14 @@ import {
   Handshake,
   Languages,
   ShieldAlert,
+  Code,
+  TrendingUp,
 } from "lucide-react";
 import { WORLDS } from "@platform/config";
 import { FlashHangoutRadar } from "./FlashHangoutRadar";
 import { GuardianSafeJourneyModal } from "./GuardianSafeJourneyModal";
+import { MicroAppsContainerModal } from "./MicroAppsContainerModal";
+import { PredictionStakesModal } from "./PredictionStakesModal";
 import { translateWithBhasha } from "./bhashaEngine";
 
 import {
@@ -53,6 +57,8 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   const [flippedPostIds, setFlippedPostIds] = useState<Set<string>>(new Set());
   const [tippingPostId, setTippingPostId] = useState<string | null>(null);
   const [isGuardianModalOpen, setIsGuardianModalOpen] = useState(false);
+  const [isMicroAppsModalOpen, setIsMicroAppsModalOpen] = useState(false);
+  const [isPredictionModalOpen, setIsPredictionModalOpen] = useState(false);
   const [translatedPostIds, setTranslatedPostIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -801,6 +807,40 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
         >
           <span>Start Beacon 🛡️</span>
         </button>
+      </div>
+
+      {/* 2.8 SOCIAL INNOVATIONS SHOWCASE ROW */}
+      <div className="bg-gradient-to-r from-sky-950/40 via-slate-900 to-emerald-950/40 border border-sky-500/30 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+            <span className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+              Social Innovations Hub
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Interactive micro-apps, karma prediction forecasts, and safe transit beacons.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => setIsMicroAppsModalOpen(true)}
+            icon={<Code className="w-3.5 h-3.5 text-sky-400" />}
+            className="bg-slate-900 border border-sky-500/40 text-sky-300 hover:bg-slate-800 text-xs shrink-0"
+          >
+            Micro-Apps 💻
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsPredictionModalOpen(true)}
+            icon={<TrendingUp className="w-3.5 h-3.5 text-emerald-400" />}
+            className="bg-slate-900 border border-emerald-500/40 text-emerald-300 hover:bg-slate-800 text-xs shrink-0"
+          >
+            Prediction Stakes 📈
+          </Button>
+        </div>
       </div>
 
       {/* 3. FEED TABS */}
@@ -1820,6 +1860,18 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
       <GuardianSafeJourneyModal
         isOpen={isGuardianModalOpen}
         onClose={() => setIsGuardianModalOpen(false)}
+      />
+
+      {/* LIVING MICRO-APPS CONTAINER (S24) */}
+      <MicroAppsContainerModal
+        isOpen={isMicroAppsModalOpen}
+        onClose={() => setIsMicroAppsModalOpen(false)}
+      />
+
+      {/* DECISIONAL PREDICTION STAKES (S27) */}
+      <PredictionStakesModal
+        isOpen={isPredictionModalOpen}
+        onClose={() => setIsPredictionModalOpen(false)}
       />
     </div>
   );
