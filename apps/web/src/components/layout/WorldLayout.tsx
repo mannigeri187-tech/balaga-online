@@ -1,0 +1,198 @@
+import React, { useState } from "react";
+import { Header } from "./Header";
+import { Sidebar } from "./Sidebar";
+import { useWorld } from "../../contexts/WorldContext";
+import { WORLDS } from "@platform/config";
+import { SocialFeed } from "../../features/socializing/SocialFeed";
+import { PeopleDiscovery } from "../../features/socializing/PeopleDiscovery";
+import { SocialStories } from "../../features/socializing/SocialStories";
+import { SocialReels } from "../../features/socializing/SocialReels";
+import { SocialCommunities } from "../../features/socializing/SocialCommunities";
+import { SocialEvents } from "../../features/socializing/SocialEvents";
+import { SocialInbox } from "../../features/socializing/SocialInbox";
+import { SocialNotifications } from "../../features/socializing/SocialNotifications";
+import { SocialProfileView } from "../../features/socializing/SocialProfileView";
+import { SocialExplore } from "../../features/socializing/SocialExplore";
+import { FoundersDashboard } from "../../features/founders/FoundersDashboard";
+import { FoundersInbox } from "../../features/founders/FoundersInbox";
+import { FoundersNotifications } from "../../features/founders/FoundersNotifications";
+import { FoundersProfileView } from "../../features/founders/FoundersProfileView";
+import { LinkedInFeedView } from "../../features/founders/LinkedInFeedView";
+import { FounderNetworkView } from "../../features/founders/FounderNetworkView";
+import { OpportunitiesMarketplaceView } from "../../features/founders/OpportunitiesMarketplaceView";
+import { HiringCentreView } from "../../features/founders/HiringCentreView";
+import { StartupHubView } from "../../features/founders/StartupHubView";
+import { ProductLaunchpadView } from "../../features/founders/ProductLaunchpadView";
+import { StartupCollaborationView } from "../../features/founders/StartupCollaborationView";
+import { ReferralExchangeView } from "../../features/founders/ReferralExchangeView";
+import { MentorNetworkView } from "../../features/founders/MentorNetworkView";
+import { InvestorNetworkView } from "../../features/founders/InvestorNetworkView";
+import { BuildSpacesView } from "../../features/founders/BuildSpacesView";
+import { VerificationCentreView } from "../../features/founders/VerificationCentreView";
+import { PremiumCentreView } from "../../features/founders/PremiumCentreView";
+
+export const WorldLayout: React.FC = () => {
+  const { activeWorld, isLoading } = useWorld();
+  const isSocial = activeWorld === WORLDS.SOCIALIZING;
+  const [currentTab, setCurrentTab] = useState<string>("feed");
+
+  // Keep tab aligned when user switches worlds
+  React.useEffect(() => {
+    setCurrentTab(isSocial ? "feed" : "dashboard");
+  }, [activeWorld, isSocial]);
+
+  const renderSocialContent = () => {
+    switch (currentTab) {
+      case "explore":
+        return <SocialExplore />;
+      case "stories":
+        return <SocialStories />;
+      case "reels":
+        return <SocialReels />;
+      case "discover":
+        return <PeopleDiscovery />;
+      case "communities":
+        return <SocialCommunities />;
+      case "events":
+        return <SocialEvents />;
+      case "inbox":
+        return <SocialInbox />;
+      case "notifications":
+        return <SocialNotifications onNavigateTab={setCurrentTab} />;
+      case "profile":
+        return <SocialProfileView onNavigateTab={setCurrentTab} />;
+      case "saved":
+      case "saved_posts":
+        return <SocialFeed initialTab="saved" />;
+      case "feed":
+      default:
+        return <SocialFeed />;
+    }
+  };
+
+  const renderFoundersContent = () => {
+    switch (currentTab) {
+      case "feed":
+        return <LinkedInFeedView onNavigateTab={setCurrentTab} />;
+      case "profile":
+        return <FoundersProfileView onNavigateTab={setCurrentTab} />;
+      case "inbox":
+        return <FoundersInbox />;
+      case "notifications":
+        return <FoundersNotifications />;
+      case "network":
+        return <FounderNetworkView onNavigateTab={setCurrentTab} />;
+      case "opportunities":
+        return <OpportunitiesMarketplaceView onNavigateTab={setCurrentTab} />;
+      case "hiring":
+        return <HiringCentreView onNavigateTab={setCurrentTab} />;
+      case "startups":
+        return <StartupHubView onNavigateTab={setCurrentTab} />;
+      case "launchpad":
+        return <ProductLaunchpadView onNavigateTab={setCurrentTab} />;
+      case "collaborations":
+        return <StartupCollaborationView onNavigateTab={setCurrentTab} />;
+      case "spaces":
+        return <BuildSpacesView onNavigateTab={setCurrentTab} />;
+      case "referrals":
+        return <ReferralExchangeView onNavigateTab={setCurrentTab} />;
+      case "mentors":
+        return <MentorNetworkView onNavigateTab={setCurrentTab} />;
+      case "investors":
+        return <InvestorNetworkView onNavigateTab={setCurrentTab} />;
+      case "verification":
+        return <VerificationCentreView />;
+      case "premium":
+        return <PremiumCentreView />;
+      case "dashboard":
+      default:
+        return <FoundersDashboard onNavigateTab={setCurrentTab} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+      {/* Top persistent header housing Top-Left Switcher & Top-Right Profile Dropdown */}
+      <Header onNavigateTab={setCurrentTab} />
+
+      <div className="flex-1 flex pb-14 sm:pb-0">
+        {/* World-specific left navigation (hidden on small mobile screens) */}
+        <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
+
+        {/* Dynamic World Main Content */}
+        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto max-h-[calc(100vh-4rem)]">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="flex flex-col items-center gap-3">
+                <div
+                  className={`w-8 h-8 border-2 border-t-transparent rounded-full animate-spin ${
+                    isSocial ? "border-violet-500" : "border-emerald-500"
+                  }`}
+                />
+                <span className="text-xs text-slate-400">
+                  Switching to {isSocial ? "Socializing" : "Founders"} Identity...
+                </span>
+              </div>
+            </div>
+          ) : isSocial ? (
+            renderSocialContent()
+          ) : (
+            renderFoundersContent()
+          )}
+        </main>
+      </div>
+
+      {/* Mobile Bottom Navigation Bar for Socializing Realm */}
+      {isSocial && (
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-950/95 border-t border-slate-800/80 backdrop-blur-lg flex items-center justify-around z-40 px-2">
+          <button
+            onClick={() => setCurrentTab("feed")}
+            className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
+              currentTab === "feed" ? "text-violet-400 font-bold" : "text-slate-400"
+            }`}
+          >
+            <span className="text-xs">🏠</span>
+            <span className="text-[10px]">Home</span>
+          </button>
+          <button
+            onClick={() => setCurrentTab("explore")}
+            className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
+              currentTab === "explore" ? "text-violet-400 font-bold" : "text-slate-400"
+            }`}
+          >
+            <span className="text-xs">🔍</span>
+            <span className="text-[10px]">Explore</span>
+          </button>
+          <button
+            onClick={() => setCurrentTab("reels")}
+            className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
+              currentTab === "reels" ? "text-violet-400 font-bold" : "text-slate-400"
+            }`}
+          >
+            <span className="text-xs">🎬</span>
+            <span className="text-[10px]">Reels</span>
+          </button>
+          <button
+            onClick={() => setCurrentTab("communities")}
+            className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
+              currentTab === "communities" ? "text-violet-400 font-bold" : "text-slate-400"
+            }`}
+          >
+            <span className="text-xs">👥</span>
+            <span className="text-[10px]">Groups</span>
+          </button>
+          <button
+            onClick={() => setCurrentTab("inbox")}
+            className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
+              currentTab === "inbox" ? "text-violet-400 font-bold" : "text-slate-400"
+            }`}
+          >
+            <span className="text-xs">💬</span>
+            <span className="text-[10px]">Inbox</span>
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+};
+
