@@ -37,8 +37,10 @@ import {
   Rocket,
   IndianRupee,
   BookOpen,
+  Moon,
 } from "lucide-react";
 import { getBuilderCardByUsername } from "./socialAccountsData";
+import { MonkModeModal } from "./MonkModeModal";
 
 interface SocialProfileViewProps {
   profile?: SocialProfile | null;
@@ -69,6 +71,20 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isLikedModalOpen, setIsLikedModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isMonkModalOpen, setIsMonkModalOpen] = useState(false);
+  const [isMonkModeActive, setIsMonkModeActive] = useState<boolean>(() => {
+    return localStorage.getItem("balaga_monk_mode") === "true";
+  });
+
+  const handleToggleMonkMode = (durationMinutes: number) => {
+    if (durationMinutes > 0) {
+      setIsMonkModeActive(true);
+      localStorage.setItem("balaga_monk_mode", "true");
+    } else {
+      setIsMonkModeActive(false);
+      localStorage.removeItem("balaga_monk_mode");
+    }
+  };
 
   // Privacy State: Private vs Public
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(() => {
@@ -650,6 +666,19 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 >
                   <RotateCw className="w-3.5 h-3.5" />
                   <span>{isFlippedToBuilder ? "Personal" : "3D Flip 🔄"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsMonkModalOpen(true)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
+                    isMonkModeActive
+                      ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/40"
+                      : "bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
+                  }`}
+                  title="Monk Mode / Deep-Work Cloak"
+                >
+                  <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{isMonkModeActive ? "Monk 🧘" : "Monk Mode"}</span>
                 </button>
                 <button
                   onClick={() => setIsSettingsMenuOpen(true)}
@@ -2232,6 +2261,14 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* MONK MODE / DEEP-WORK CLOAK (S22) */}
+      <MonkModeModal
+        isOpen={isMonkModalOpen}
+        onClose={() => setIsMonkModalOpen(false)}
+        isMonkModeActive={isMonkModeActive}
+        onToggleMonkMode={handleToggleMonkMode}
+      />
     </div>
   );
 };
