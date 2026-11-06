@@ -109,6 +109,27 @@ export const SocialCommunities: React.FC = () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
+    {
+      id: "comm-5",
+      creatorId: "10000000-0000-0000-0000-000000000001",
+      name: "Indie Hackers & Weekend Builders",
+      slug: "indie-hackers-weekend",
+      description: "Weekend side-project builders, indie hackers, and creative coders in Bengaluru sharing cafe spots, design systems, and launch demos.",
+      category: "Tech & Code",
+      isPrivate: false,
+      coverUrl: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=1200&q=80",
+      avatarUrl: "💻",
+      rules: [
+        "Zero promotional spam; share genuine build-in-public learnings.",
+        "Support fellow indie creators with constructive design & code feedback.",
+        "Informal weekend offline co-working in cafes.",
+      ],
+      membersCount: 384,
+      isMember: true,
+      myRole: "member",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
   ]);
 
   // Community Discussion Posts
@@ -266,14 +287,21 @@ export const SocialCommunities: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-lg">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-violet-400" />
-            <h2 className="text-lg font-bold text-slate-100">Interest Communities</h2>
+            <h2 className="text-lg font-bold text-slate-100">Balaga Circles</h2>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/30">
+              Interest-First
+            </span>
           </div>
           <p className="text-xs text-slate-400">
-            Join groups of people passionate about crafts, books, cycling, design, and local hobbies.
+            Small, interest-based communities for crafts, sports, cinema, literature, and creative coding. Zero algorithmic ranking.
           </p>
+          <div className="pt-1 flex items-center gap-2 text-[10px] text-slate-400">
+            <Shield className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Democratic Circle Council: Transparent moderation logs & member guidelines</span>
+          </div>
         </div>
 
         <Button
@@ -281,8 +309,9 @@ export const SocialCommunities: React.FC = () => {
           size="sm"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setIsCreateModalOpen(true)}
+          className="shrink-0"
         >
-          Create Community
+          Start a Circle
         </Button>
       </div>
 

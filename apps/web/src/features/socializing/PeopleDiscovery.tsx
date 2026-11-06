@@ -8,7 +8,6 @@ import {
   UserCheck,
   MapPin,
   Sparkles,
-  Users,
   Clock,
   Filter,
 } from "lucide-react";
@@ -194,14 +193,20 @@ export const PeopleDiscovery: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top Header & Sub-Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-lg">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Users className="w-5 h-5 text-violet-400" />
-            <h2 className="text-lg font-bold text-slate-100">People & Connections</h2>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-violet-400" />
+            <h2 className="text-lg font-bold text-slate-100">Beyond Followers</h2>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+              Synergy Matchmaker
+            </span>
           </div>
           <p className="text-xs text-slate-400">
-            Discover people through shared passions, hobbies, local languages & regional communities.
+            Discover people based on shared crafts, sports, and creative styles—not follower counts or popularity algorithms.
           </p>
+          <div className="pt-0.5 text-[10px] text-slate-500 font-medium">
+            ✨ 0% Vanity Metrics • 100% Mutual Interest Matching
+          </div>
         </div>
 
         <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
@@ -323,7 +328,10 @@ export const PeopleDiscovery: React.FC = () => {
 
           {/* People Discovery Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredPeople.map((person) => (
+            {filteredPeople.map((person) => {
+              const synergy = Math.min(98, 65 + (person.sharedInterests.length * 10) + (person.sharedHobbies.length * 5));
+
+              return (
               <div
                 key={person.id}
                 className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-5 space-y-3.5 hover:border-slate-700 transition-all flex flex-col justify-between shadow-sm"
@@ -350,6 +358,11 @@ export const PeopleDiscovery: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-sm shrink-0">
+                      <Sparkles className="w-3 h-3 text-emerald-400" />
+                      <span>{synergy}% Synergy</span>
+                    </span>
                   </div>
 
                   <p className="text-xs text-slate-300 mt-3 leading-relaxed">{person.bio}</p>
@@ -448,7 +461,8 @@ export const PeopleDiscovery: React.FC = () => {
                   </Button>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       ) : (
