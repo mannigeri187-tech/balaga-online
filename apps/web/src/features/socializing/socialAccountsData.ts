@@ -245,3 +245,59 @@ export const getAccountByUsername = (username?: string): PublicSocialAccount => 
     ],
   };
 };
+
+export interface PublicBuilderCard {
+  isPublicBuilder: boolean;
+  headline: string;
+  startupName?: string;
+  stage?: string;
+  techStack: string[];
+  superpowers: string[];
+  lookingFor?: string;
+  verifiedBadge?: "gold" | "blue" | "teal";
+}
+
+export const BUILDER_PROFILES: Record<string, PublicBuilderCard> = {
+  aarav_social: {
+    isPublicBuilder: true,
+    headline: "Founder & Full-stack Engineer at Balaga",
+    startupName: "Balaga.online",
+    stage: "Seed / Active v1",
+    techStack: ["TypeScript", "React", "Node.js", "Supabase", "Tailwind"],
+    superpowers: ["Full-Stack Architecture", "Product Design", "Distributed Systems"],
+    lookingFor: "Early adopters & talented indie hackers in Bengaluru",
+    verifiedBadge: "gold",
+  },
+  priya_art: {
+    isPublicBuilder: true,
+    headline: "Co-Founder & Design Lead at BioHealth AI",
+    startupName: "BioHealth AI",
+    stage: "Pre-seed",
+    techStack: ["Figma", "Design Systems", "Three.js", "Tailwind"],
+    superpowers: ["Botanical Illustration", "UI/UX Systems", "Micro-Interactions"],
+    lookingFor: "Founding Engineer with PyTorch experience",
+    verifiedBadge: "blue",
+  },
+  kabir_rides: {
+    isPublicBuilder: true,
+    headline: "Hardware Engineer & IoT Architect",
+    startupName: "AeroTelemetry",
+    stage: "Bootstrapped",
+    techStack: ["Embedded C++", "Rust", "BLE 5.2", "KiCAD"],
+    superpowers: ["Battery Optimization", "Low-power firmware"],
+    lookingFor: "Flutter mobile developer",
+    verifiedBadge: "blue",
+  },
+};
+
+export const getBuilderCardByUsername = (username?: string): PublicBuilderCard => {
+  if (username && BUILDER_PROFILES[username]) {
+    return BUILDER_PROFILES[username];
+  }
+  return {
+    isPublicBuilder: false,
+    headline: "Creator & Community Member",
+    techStack: [],
+    superpowers: ["Creativity", "Community Engagement"],
+  };
+};

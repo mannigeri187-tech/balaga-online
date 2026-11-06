@@ -20,26 +20,34 @@ import {
   Pause,
   Trash2,
   Eye,
+  RotateCw,
+  Rocket,
+  IndianRupee,
+  Handshake,
 } from "lucide-react";
+import { WORLDS } from "@platform/config";
+import { FlashHangoutRadar } from "./FlashHangoutRadar";
 
 import {
   SocialPublicProfileModal,
   PublicSocialAccount,
 } from "./SocialPublicProfileModal";
-import { getAccountByUsername } from "./socialAccountsData";
+import { getAccountByUsername, getBuilderCardByUsername } from "./socialAccountsData";
 
 interface SocialFeedProps {
   initialTab?: "for_you" | "following" | "saved";
 }
 
 export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }) => {
-  const { socialProfile } = useWorld();
+  const { socialProfile, switchWorld } = useWorld();
   const [activeTab, setActiveTab] = useState<"for_you" | "following" | "saved">(initialTab);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [savedPostIds, setSavedPostIds] = useState<Set<string>>(new Set(["sp-2"]));
   const [shareToast, setShareToast] = useState<string | null>(null);
   const [selectedUserProfile, setSelectedUserProfile] = useState<PublicSocialAccount | null>(null);
   const [followingUsernames, setFollowingUsernames] = useState<Set<string>>(new Set(["priya_art"]));
+  const [flippedPostIds, setFlippedPostIds] = useState<Set<string>>(new Set());
+  const [tippingPostId, setTippingPostId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialTab) {
@@ -554,6 +562,32 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
     setTimeout(() => setShareToast(null), 2500);
   };
 
+  // Toggle 3D Balaga Card Flip (Social ↔ Builder)
+  const handleToggleFlip = (postId: string) => {
+    setFlippedPostIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) {
+        next.delete(postId);
+      } else {
+        next.add(postId);
+      }
+      return next;
+    });
+  };
+
+  // Send Direct UPI Tip (0% platform fee)
+  const handleSendUpiTip = (creatorUsername: string, amount: number) => {
+    setTippingPostId(null);
+    const upiUrl = `upi://pay?pa=${creatorUsername}@okaxis&pn=${encodeURIComponent(creatorUsername)}&am=${amount}&cu=INR`;
+    try {
+      window.open(upiUrl, "_blank");
+    } catch {
+      // Fallback
+    }
+    setShareToast(`🎉 ₹${amount} Shabaash sent directly to @${creatorUsername}! 0% platform fee.`);
+    setTimeout(() => setShareToast(null), 3500);
+  };
+
   // Delete story
   const handleDeleteStory = (storyId: string) => {
     setStoriesList((prev) => prev.filter((s) => s.id !== storyId));
@@ -732,6 +766,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
         </div>
       </div>
 
+      {/* 2. FLASH HANGOUT RADAR (120-Min Real-World Beacons) */}
+      <FlashHangoutRadar />
+
       {/* 3. FEED TABS */}
       <div className="flex border-b border-slate-800">
         <button
@@ -896,98 +933,212 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
             </div>
           </div>
         ) : (
-          displayedPosts.map((post) => (
-            <article
-              key={post.id}
-              className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-5 space-y-3 hover:border-slate-700/80 transition-all shadow-sm"
-            >
-              {/* Post Author */}
-              <div className="flex items-center justify-between">
-                <div
-                  onClick={() => handleOpenAuthorProfile(post.author?.username, post.author?.displayName)}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center font-bold text-violet-300 group-hover:scale-105 transition-transform">
-                    {post.author?.displayName?.[0] || "U"}
+          displayedPosts.map((post) => {
+            const isFlipped = flippedPostIds.has(post.id);
+            const builderCard = getBuilderCardByUsername(post.author?.username);
+
+            return (
+              <article
+                key={post.id}
+                className={`border rounded-2xl p-5 space-y-3 transition-all shadow-sm ${
+                  isFlipped
+                    ? "bg-slate-950/90 border-amber-500/40 shadow-amber-950/20"
+                    : "bg-slate-900/50 border-slate-800/80 hover:border-slate-700/80"
+                }`}
+              >
+                {/* Post Author */}
+                <div className="flex items-center justify-between">
+                  <div
+                    onClick={() => handleOpenAuthorProfile(post.author?.username, post.author?.displayName)}
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center font-bold text-violet-300 group-hover:scale-105 transition-transform">
+                      {post.author?.displayName?.[0] || "U"}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-sm text-slate-100 group-hover:text-violet-400 group-hover:underline transition-colors">
+                          {post.author?.displayName}
+                        </h4>
+                        {post.author?.pronouns && (
+                          <span className="text-[10px] text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded font-medium">
+                            {post.author.pronouns}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-400 group-hover:text-slate-300">
+                        @{post.author?.username} • {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold text-sm text-slate-100 group-hover:text-violet-400 group-hover:underline transition-colors">
-                        {post.author?.displayName}
-                      </h4>
-                      {post.author?.pronouns && (
-                        <span className="text-[10px] text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded font-medium">
-                          {post.author.pronouns}
+
+                  <div className="flex items-center gap-2">
+                    {/* 3D Balaga Card Flip Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFlip(post.id)}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+                        isFlipped
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                          : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60"
+                      }`}
+                      title="Flip card between Social and Builder identity"
+                    >
+                      <RotateCw className={`w-3 h-3 ${isFlipped ? "rotate-180 text-amber-400 transition-transform duration-300" : ""}`} />
+                      <span>{isFlipped ? "Social View" : "3D Flip 🔄"}</span>
+                    </button>
+
+                    {post.author?.username && post.authorId !== currentSocialProfile?.id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleFollow(post.author!.username);
+                        }}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${
+                          followingUsernames.has(post.author.username)
+                            ? "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                            : "bg-violet-600 text-white hover:bg-violet-500"
+                        }`}
+                      >
+                        {followingUsernames.has(post.author.username) ? "Following" : "Follow"}
+                      </button>
+                    )}
+
+                    {/* Post Options / Delete if Author */}
+                    {post.authorId === currentSocialProfile?.id && (
+                      <button
+                        onClick={() => handleDeleteFeedPost(post.id)}
+                        className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                        title="Delete post"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {isFlipped ? (
+                  /* BACK FACE: VERIFIED BUILDER IDENTITY CARD */
+                  <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/30 border border-amber-500/30 rounded-xl p-4 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center justify-between pb-2 border-b border-amber-900/30">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                          <Rocket className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                          Builder Identity
+                        </span>
+                      </div>
+                      {builderCard.verifiedBadge && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                          {builderCard.verifiedBadge === "gold" ? "⭐ Gold Founder" : "⚡ Verified Builder"}
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-slate-400 group-hover:text-slate-300">
-                      @{post.author?.username} • {new Date(post.createdAt).toLocaleDateString()}
-                    </span>
+
+                    {builderCard.isPublicBuilder ? (
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-100">
+                            {builderCard.headline}
+                          </h4>
+                          {builderCard.startupName && (
+                            <p className="text-xs text-amber-300/90 font-medium">
+                              🚀 {builderCard.startupName} • <span className="text-slate-400">{builderCard.stage}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Tech Stack Chips */}
+                        {builderCard.techStack.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                              Superpower Tech Stack
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {builderCard.techStack.map((tech) => (
+                                <span
+                                  key={tech}
+                                  className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-300"
+                                >
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Open Needs */}
+                        {builderCard.lookingFor && (
+                          <div className="p-2.5 rounded-lg bg-amber-950/20 border border-amber-900/30 text-xs text-amber-200/90 flex items-start gap-2">
+                            <Handshake className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                            <span>{builderCard.lookingFor}</span>
+                          </div>
+                        )}
+
+                        {/* Action Bridge: Switch to Founders */}
+                        <div className="pt-1 flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500">
+                            🔒 Opted-in public summary. Deals & internal spaces stay isolated.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm("Switch to Founders World to view this builder's full startup dashboard and network?")) {
+                                switchWorld(WORLDS.FOUNDERS);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-amber-950/30"
+                          >
+                            <span>Open in Founders World</span>
+                            <Rocket className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-6 text-center space-y-1 text-slate-400 text-xs">
+                        <p className="font-semibold text-slate-300">Personal Account</p>
+                        <p className="text-[11px] text-slate-500">
+                          This creator has not opted in to publish a public Builder Card.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </div>
+                ) : (
+                  /* FRONT FACE: ORIGINAL SOCIAL CONTENT */
+                  <>
+                    <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                      {post.content}
+                    </p>
 
-                <div className="flex items-center gap-2">
-                  {post.author?.username && post.authorId !== currentSocialProfile?.id && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleFollow(post.author!.username);
-                      }}
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors ${
-                        followingUsernames.has(post.author.username)
-                          ? "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
-                          : "bg-violet-600 text-white hover:bg-violet-500"
-                      }`}
-                    >
-                      {followingUsernames.has(post.author.username) ? "Following" : "Follow"}
-                    </button>
-                  )}
+                    {/* Attached Photo */}
+                    {post.mediaUrls && post.mediaUrls.length > 0 && (
+                      <div className="rounded-xl overflow-hidden border border-slate-800 max-h-96">
+                        <img
+                          src={post.mediaUrls[0]}
+                          alt="Post media"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
 
-                  {/* Post Options / Delete if Author */}
-                  {post.authorId === currentSocialProfile?.id && (
-                    <button
-                      onClick={() => handleDeleteFeedPost(post.id)}
-                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                      title="Delete post"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Post Content */}
-              <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
-                {post.content}
-              </p>
-
-              {/* Attached Photo */}
-              {post.mediaUrls && post.mediaUrls.length > 0 && (
-                <div className="rounded-xl overflow-hidden border border-slate-800 max-h-96">
-                  <img
-                    src={post.mediaUrls[0]}
-                    alt="Post media"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-
-              {/* Interactive Poll Display */}
-              {post.postType === "poll" && post.pollOptions && (
-                <div className="space-y-2 pt-2">
-                  {post.pollOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      onClick={() => handleVotePoll(post.id, opt.id)}
-                      className="w-full text-left p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-violet-500/50 flex items-center justify-between transition-colors text-xs"
-                    >
-                      <span className="text-slate-200 font-medium">{opt.text}</span>
-                      <span className="text-[11px] font-bold text-violet-400">{opt.votes} votes</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+                    {/* Interactive Poll Display */}
+                    {post.postType === "poll" && post.pollOptions && (
+                      <div className="space-y-2 pt-2">
+                        {post.pollOptions.map((opt) => (
+                          <button
+                            key={opt.id}
+                            onClick={() => handleVotePoll(post.id, opt.id)}
+                            className="w-full text-left p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-violet-500/50 flex items-center justify-between transition-colors text-xs"
+                          >
+                            <span className="text-slate-200 font-medium">{opt.text}</span>
+                            <span className="text-[11px] font-bold text-violet-400">{opt.votes} votes</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
 
               {/* Reactions & Interaction Bar */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-800/60 text-slate-400 text-xs">
@@ -1037,6 +1188,21 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
                   >
                     🤝
                   </button>
+
+                  {/* Native UPI Shabaash Tipping Button */}
+                  <button
+                    type="button"
+                    onClick={() => setTippingPostId(tippingPostId === post.id ? null : post.id)}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors font-bold text-xs ${
+                      tippingPostId === post.id
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                        : "hover:bg-emerald-500/10 text-emerald-400"
+                    }`}
+                    title="Send direct UPI tip to creator (0% platform fee)"
+                  >
+                    <IndianRupee className="w-3.5 h-3.5" />
+                    <span>Shabaash</span>
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -1074,6 +1240,56 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
                   </button>
                 </div>
               </div>
+
+              {/* UPI SHABAASH DIRECT TIPPING POPOVER */}
+              {tippingPostId === post.id && (
+                <div className="pt-3 border-t border-emerald-900/40 bg-emerald-950/20 p-4 rounded-xl space-y-3 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
+                        ₹
+                      </div>
+                      <div>
+                        <h5 className="font-bold text-xs text-slate-100">
+                          Send Shabaash to @{post.author?.username}
+                        </h5>
+                        <span className="text-[10px] text-slate-400">
+                          UPI VPA: <span className="font-mono text-emerald-400">{post.author?.username}@okaxis</span>
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setTippingPostId(null)}
+                      className="text-slate-400 hover:text-white text-xs font-semibold"
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+
+                  {/* Fast Amount Chips */}
+                  <div className="flex items-center gap-2">
+                    {[10, 25, 50, 100].map((amt) => (
+                      <button
+                        key={amt}
+                        onClick={() => handleSendUpiTip(post.author?.username || "creator", amt)}
+                        className="flex-1 py-1.5 rounded-lg bg-slate-900 border border-emerald-500/30 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-400 text-emerald-300 font-bold text-xs transition-all active:scale-95"
+                      >
+                        ₹{amt}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Mandatory Zero-Liability Transaction Disclosure */}
+                  <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800 text-[10px] text-slate-400 leading-relaxed space-y-1">
+                    <p className="font-semibold text-slate-300">
+                      ⚡ 0% Platform Fee · Direct Creator Fuel
+                    </p>
+                    <p>
+                      Balaga does not process, hold, or escrow your funds. Tapping an amount opens your UPI app (GPay, PhonePe, Paytm, BHIM) where you authorize the payment directly into the creator&apos;s bank account.
+                    </p>
+                  </div>
+                </div>
+              )}
 
             {/* COLLAPSIBLE COMMENTS THREAD */}
             {activeCommentPostId === post.id && (
@@ -1166,7 +1382,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
               </div>
             )}
           </article>
-        )))}
+        );
+      })
+    )}
       </div>
 
       {/* Social Profile Customization Modal */}
