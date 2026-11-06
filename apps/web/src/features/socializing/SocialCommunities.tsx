@@ -14,7 +14,9 @@ import {
   Send,
   X,
   ArrowLeft,
+  Receipt,
 } from "lucide-react";
+import { CircleSplitModal } from "./CircleSplitModal";
 
 export const SocialCommunities: React.FC = () => {
   const { socialProfile } = useWorld();
@@ -23,6 +25,7 @@ export const SocialCommunities: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCommunity, setSelectedCommunity] = useState<SocialCommunity | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
 
   // Communities State
   const [communities, setCommunities] = useState<SocialCommunity[]>([
@@ -304,15 +307,26 @@ export const SocialCommunities: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={() => setIsCreateModalOpen(true)}
-          className="shrink-0"
-        >
-          Start a Circle
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Receipt className="w-4 h-4 text-emerald-400" />}
+            onClick={() => setIsSplitModalOpen(true)}
+            className="shrink-0 bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-200"
+          >
+            Zero-Math Split 💸
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsCreateModalOpen(true)}
+            className="shrink-0"
+          >
+            Start a Circle
+          </Button>
+        </div>
       </div>
 
       {!selectedCommunity ? (
@@ -468,13 +482,24 @@ export const SocialCommunities: React.FC = () => {
                   </div>
                 </div>
 
-                <Button
-                  variant={selectedCommunity.isMember ? "destructive" : "primary"}
-                  size="sm"
-                  onClick={() => handleToggleJoin(selectedCommunity)}
-                >
-                  {selectedCommunity.isMember ? "Leave Community" : "Join Community"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<Receipt className="w-3.5 h-3.5 text-emerald-400" />}
+                    onClick={() => setIsSplitModalOpen(true)}
+                    className="bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-200 text-xs"
+                  >
+                    Split Group Bill
+                  </Button>
+                  <Button
+                    variant={selectedCommunity.isMember ? "destructive" : "primary"}
+                    size="sm"
+                    onClick={() => handleToggleJoin(selectedCommunity)}
+                  >
+                    {selectedCommunity.isMember ? "Leave Community" : "Join Community"}
+                  </Button>
+                </div>
               </div>
 
               <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
@@ -692,6 +717,13 @@ export const SocialCommunities: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ZERO-MATH CIRCLE SPLIT MODAL (S15) */}
+      <CircleSplitModal
+        isOpen={isSplitModalOpen}
+        onClose={() => setIsSplitModalOpen(false)}
+        circleName={selectedCommunity?.name || "Balaga Circles"}
+      />
     </div>
   );
 };

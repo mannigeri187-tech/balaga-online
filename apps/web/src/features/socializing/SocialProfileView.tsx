@@ -36,6 +36,7 @@ import {
   RotateCw,
   Rocket,
   IndianRupee,
+  BookOpen,
 } from "lucide-react";
 import { getBuilderCardByUsername } from "./socialAccountsData";
 
@@ -56,7 +57,7 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
     propProfile || socialProfile || null
   );
 
-  const [activeTab, setActiveTab] = useState<"posts" | "showcase" | "saved" | "tagged">("posts");
+  const [activeTab, setActiveTab] = useState<"posts" | "showcase" | "chapters" | "saved" | "tagged">("posts");
   const [isFlippedToBuilder, setIsFlippedToBuilder] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -268,6 +269,119 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
       actionLabel: "Open Reading Circle ☕",
     },
   ]);
+
+  // 7. Life Chapters & Memory Vault (S14)
+  const [lifeChapters, setLifeChapters] = useState([
+    {
+      id: "ch-3",
+      title: "Chapter 3: Indiranagar Studio & Building Balaga",
+      era: "2025 – Present",
+      location: "Bengaluru, India",
+      summary: "Setting up a hardware & design workspace with friends, prototyping tactile multi-realm software, and dawn cycling loops to Nandi.",
+      isCapsuleLocked: false,
+      capsuleStatusText: "Active Chapter • Open Memory Stream",
+      contributors: [
+        { name: "Priya Rao", avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80" },
+        { name: "Kabir Mehta", avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80" },
+      ],
+      milestones: [
+        {
+          id: "m-31",
+          photoUrl: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=800&q=80",
+          title: "First Studio Workbench Setup",
+          date: "Jan 2026",
+          note: "Soldered the telemetry receivers and framed the first Balaga paper sketches on the brick wall.",
+        },
+        {
+          id: "m-32",
+          photoUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80",
+          title: "100km Century Ride with Deccan Squad",
+          date: "Mar 2026",
+          note: "Reached Nandi summit before sunrise. Cold wind, hot chai, and zero flats.",
+        },
+      ],
+    },
+    {
+      id: "ch-2",
+      title: "Chapter 2: Western Ghats Coffee Trails & Film Notes",
+      era: "2023 – 2024",
+      location: "Madikeri, Coorg",
+      summary: "One year away from screens in coffee estates, learning 35mm film photography and natural water-coloring in monsoons.",
+      isCapsuleLocked: true,
+      capsuleStatusText: "Time Capsule Locked • Unlocks Dec 31, 2026",
+      contributors: [
+        { name: "Ananya Iyer", avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" },
+      ],
+      milestones: [
+        {
+          id: "m-21",
+          photoUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+          title: "Monsoon Mist over Plantation Ridge",
+          date: "July 2024",
+          note: "Continuous rain for 14 days straight. Watercolors took 6 hours to dry.",
+        },
+      ],
+    },
+    {
+      id: "ch-1",
+      title: "Chapter 1: College Fine Arts & Systems Engineering",
+      era: "2019 – 2023",
+      location: "Mysuru & Bengaluru",
+      summary: "Dual life of distributed computing coursework by night and life drawing sketchbooks by day in Chamundi foothills.",
+      isCapsuleLocked: false,
+      capsuleStatusText: "Graduation Capsule Opened • 48 Shared Memories",
+      contributors: [
+        { name: "Rohit Deshmukh", avatarUrl: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&q=80" },
+      ],
+      milestones: [
+        {
+          id: "m-11",
+          photoUrl: "https://images.unsplash.com/photo-1452421822248-d4c2b47f0c81?w=800&q=80",
+          title: "Final Year Degree Project & Exhibition",
+          date: "May 2023",
+          note: "Presented the thesis on spatial interfaces for collaborative creator guilds.",
+        },
+      ],
+    },
+  ]);
+
+  const [isAddChapterModalOpen, setIsAddChapterModalOpen] = useState(false);
+  const [newChapterTitle, setNewChapterTitle] = useState("");
+  const [newChapterEra, setNewChapterEra] = useState("");
+  const [newChapterLocation, setNewChapterLocation] = useState("");
+  const [newChapterSummary, setNewChapterSummary] = useState("");
+
+  const handleCreateChapter = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newChapterTitle.trim()) return;
+
+    const newCh = {
+      id: `ch-${Date.now()}`,
+      title: newChapterTitle.trim(),
+      era: newChapterEra.trim() || "2026",
+      location: newChapterLocation.trim() || "Bengaluru",
+      summary: newChapterSummary.trim() || "A new personal chapter on Balaga.",
+      isCapsuleLocked: false,
+      capsuleStatusText: "Active Chapter • Just Opened",
+      contributors: [],
+      milestones: [
+        {
+          id: `m-${Date.now()}`,
+          photoUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+          title: "Chapter Initiated",
+          date: "Today",
+          note: newChapterSummary.trim() || "Chapter started.",
+        },
+      ],
+    };
+
+    setLifeChapters([newCh, ...lifeChapters]);
+    setNewChapterTitle("");
+    setNewChapterEra("");
+    setNewChapterLocation("");
+    setNewChapterSummary("");
+    setIsAddChapterModalOpen(false);
+  };
 
   // Handle Share Note
   const handleShareNote = (e: React.FormEvent) => {
@@ -853,6 +967,17 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 <span>Showcase ✨</span>
               </button>
               <button
+                onClick={() => setActiveTab("chapters")}
+                className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
+                  activeTab === "chapters"
+                    ? "border-emerald-400 text-emerald-300"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Chapters 📖</span>
+              </button>
+              <button
                 onClick={() => setActiveTab("saved")}
                 className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
                   activeTab === "saved"
@@ -1003,6 +1128,154 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                           <span>Shabaash ⚡</span>
                         </a>
                       </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* LIFE CHAPTERS & MEMORY VAULT (S14) */}
+          {activeTab === "chapters" && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-emerald-500/10 via-slate-900 to-teal-500/10 border border-emerald-500/30 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/40">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                      Life Chapters & Memory Vault
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-mono">
+                        MILESTONES
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Meaningful life milestones, time capsules, and collaborative memories across your life eras.
+                    </p>
+                  </div>
+                </div>
+                {isSelf && (
+                  <Button
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shrink-0"
+                    onClick={() => setIsAddChapterModalOpen(true)}
+                  >
+                    + Add Life Chapter
+                  </Button>
+                )}
+              </div>
+
+              {/* Chapters Timeline List */}
+              <div className="space-y-6 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-800">
+                {lifeChapters.map((chapter) => (
+                  <div key={chapter.id} className="relative pl-12 space-y-3">
+                    {/* Timeline bullet */}
+                    <div className="absolute left-3.5 -translate-x-1/2 top-1.5 w-4 h-4 rounded-full bg-slate-950 border-2 border-emerald-400 shadow-md flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    </div>
+
+                    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4 hover:border-slate-700 transition-all">
+                      {/* Chapter Header */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2.5">
+                            <h4 className="text-base font-bold text-white">
+                              {chapter.title}
+                            </h4>
+                            <span className="text-xs font-mono bg-slate-800 text-emerald-300 px-2 py-0.5 rounded border border-slate-700">
+                              {chapter.era}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                            <span className="flex items-center gap-1 text-slate-400">
+                              <MapPin className="w-3 h-3 text-emerald-400" />
+                              {chapter.location}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Capsule Status Pill */}
+                        <div
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 self-start ${
+                            chapter.isCapsuleLocked
+                              ? "bg-amber-500/10 border border-amber-500/30 text-amber-300"
+                              : "bg-emerald-500/10 border border-emerald-500/30 text-emerald-300"
+                          }`}
+                        >
+                          <Lock className="w-3 h-3" />
+                          <span>{chapter.capsuleStatusText}</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        {chapter.summary}
+                      </p>
+
+                      {/* Milestones in this chapter */}
+                      <div className="space-y-2 pt-1">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                          Milestone Moments:
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {chapter.milestones.map((m) => (
+                            <div
+                              key={m.id}
+                              className="bg-slate-950/80 border border-slate-800 rounded-xl overflow-hidden p-3 flex gap-3 group"
+                            >
+                              <img
+                                src={m.photoUrl}
+                                alt={m.title}
+                                className="w-20 h-20 rounded-lg object-cover group-hover:scale-105 transition-transform shrink-0"
+                              />
+                              <div className="flex flex-col justify-between text-xs min-w-0">
+                                <div>
+                                  <h5 className="font-semibold text-white truncate">
+                                    {m.title}
+                                  </h5>
+                                  <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2">
+                                    {m.note}
+                                  </p>
+                                </div>
+                                <span className="text-[10px] text-emerald-400 font-mono">
+                                  {m.date}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Shared Contributors */}
+                      {chapter.contributors && chapter.contributors.length > 0 && (
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-slate-800/60">
+                          <span className="flex items-center gap-2">
+                            <span>Collaborative Memory Contributors:</span>
+                            <div className="flex -space-x-1.5">
+                              {chapter.contributors.map((c, i) => (
+                                <img
+                                  key={i}
+                                  src={c.avatarUrl}
+                                  alt={c.name}
+                                  title={c.name}
+                                  className="w-5 h-5 rounded-full border border-slate-900 object-cover"
+                                />
+                              ))}
+                            </div>
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              alert(
+                                `Shared vault for ${chapter.title} is synced across all tagged contributors.`
+                              )
+                            }
+                            className="text-emerald-400 hover:underline"
+                          >
+                            View Shared Vault
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1862,6 +2135,100 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 <span>Copy Profile Link</span>
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD LIFE CHAPTER (S14) */}
+      {isAddChapterModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-emerald-400" />
+                Add New Life Chapter
+              </h3>
+              <button
+                onClick={() => setIsAddChapterModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateChapter} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Chapter Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Chapter 4: European Art Residency"
+                  value={newChapterTitle}
+                  onChange={(e) => setNewChapterTitle(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Era / Year
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2026 – 2027"
+                    value={newChapterEra}
+                    onChange={(e) => setNewChapterEra(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Florence & Berlin"
+                    value={newChapterLocation}
+                    onChange={(e) => setNewChapterLocation(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Chapter Summary
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="What defined this era of your life?"
+                  value={newChapterSummary}
+                  onChange={(e) => setNewChapterSummary(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setIsAddChapterModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs"
+                >
+                  Save Life Chapter
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
