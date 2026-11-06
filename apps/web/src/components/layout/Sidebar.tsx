@@ -23,14 +23,16 @@ import {
   FolderKanban,
   ShieldCheck,
   Crown,
+  PlusSquare,
 } from "lucide-react";
 
 interface SidebarProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
+  onCreateClick?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange, onCreateClick }) => {
   const { activeWorld } = useWorld();
   const isSocial = activeWorld === WORLDS.SOCIALIZING;
 
@@ -40,6 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
     { id: "reels", label: "Reels", icon: Film },
     { id: "inbox", label: "Messages", icon: MessageSquare, badge: "2" },
     { id: "notifications", label: "Notifications", icon: Heart, badge: "5" },
+    { id: "create", label: "Create", icon: PlusSquare },
     { id: "communities", label: "Communities", icon: Users },
     { id: "events", label: "Events", icon: Calendar },
     { id: "profile", label: "Profile", icon: User },
@@ -70,42 +73,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onTabChange }) => 
   return (
     <aside className="hidden md:flex w-64 border-r border-slate-800 bg-slate-950 p-4 flex-col justify-between shrink-0 h-[calc(100vh-4rem)] sticky top-16 select-none">
       <div>
-        {/* Brand Header */}
-        <div className="mb-5 px-3">
-          {isSocial ? (
-            <div>
-              <span className="font-serif italic text-2xl font-bold tracking-tight text-white block">
-                Instagram
-              </span>
-              <span className="text-[10px] text-violet-400 font-semibold tracking-wider uppercase">
-                Socializing Realm
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-[#0077b5] flex items-center justify-center font-bold text-white text-base font-sans">
-                in
-              </div>
-              <div>
-                <span className="font-bold text-sm text-white block leading-tight">
-                  LinkedIn Feed
-                </span>
-                <span className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">
-                  Founders Realm
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <nav className="space-y-1">
+        <nav className="space-y-1 pt-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                onClick={() => {
+                  if (item.id === "create" && onCreateClick) {
+                    onCreateClick();
+                  } else {
+                    onTabChange(item.id);
+                  }
+                }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                   isActive
                     ? isSocial

@@ -30,11 +30,13 @@ import { InvestorNetworkView } from "../../features/founders/InvestorNetworkView
 import { BuildSpacesView } from "../../features/founders/BuildSpacesView";
 import { VerificationCentreView } from "../../features/founders/VerificationCentreView";
 import { PremiumCentreView } from "../../features/founders/PremiumCentreView";
+import { CreateMediaModal } from "../../features/socializing/CreateMediaModal";
 
 export const WorldLayout: React.FC = () => {
   const { activeWorld, isLoading } = useWorld();
   const isSocial = activeWorld === WORLDS.SOCIALIZING;
   const [currentTab, setCurrentTab] = useState<string>("feed");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Keep tab aligned when user switches worlds
   React.useEffect(() => {
@@ -117,7 +119,11 @@ export const WorldLayout: React.FC = () => {
 
       <div className="flex-1 flex pb-14 sm:pb-0">
         {/* World-specific left navigation (hidden on small mobile screens) */}
-        <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
+        <Sidebar
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          onCreateClick={() => setIsCreateModalOpen(true)}
+        />
 
         {/* Dynamic World Main Content */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto max-h-[calc(100vh-4rem)]">
@@ -164,6 +170,13 @@ export const WorldLayout: React.FC = () => {
             <span className="text-[10px]">Explore</span>
           </button>
           <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="p-1.5 rounded-xl flex flex-col items-center gap-0.5 text-violet-400 font-bold"
+          >
+            <span className="text-base">➕</span>
+            <span className="text-[10px]">Create</span>
+          </button>
+          <button
             onClick={() => setCurrentTab("reels")}
             className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
               currentTab === "reels" ? "text-violet-400 font-bold" : "text-slate-400"
@@ -173,24 +186,23 @@ export const WorldLayout: React.FC = () => {
             <span className="text-[10px]">Reels</span>
           </button>
           <button
-            onClick={() => setCurrentTab("communities")}
+            onClick={() => setCurrentTab("profile")}
             className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
-              currentTab === "communities" ? "text-violet-400 font-bold" : "text-slate-400"
+              currentTab === "profile" ? "text-violet-400 font-bold" : "text-slate-400"
             }`}
           >
-            <span className="text-xs">👥</span>
-            <span className="text-[10px]">Groups</span>
-          </button>
-          <button
-            onClick={() => setCurrentTab("inbox")}
-            className={`p-1.5 rounded-xl flex flex-col items-center gap-0.5 ${
-              currentTab === "inbox" ? "text-violet-400 font-bold" : "text-slate-400"
-            }`}
-          >
-            <span className="text-xs">💬</span>
-            <span className="text-[10px]">Inbox</span>
+            <span className="text-xs">👤</span>
+            <span className="text-[10px]">Profile</span>
           </button>
         </nav>
+      )}
+
+      {/* Create Post / Reel Modal */}
+      {isSocial && (
+        <CreateMediaModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+        />
       )}
     </div>
   );

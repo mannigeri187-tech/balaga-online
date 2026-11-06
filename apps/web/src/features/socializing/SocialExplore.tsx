@@ -481,7 +481,7 @@ export const SocialExplore: React.FC = () => {
           <div className="flex items-center justify-between px-1">
             <h3 className="font-bold text-xs uppercase tracking-wider text-slate-300 flex items-center gap-2">
               <Flame className="w-4 h-4 text-violet-400" />
-              <span>Trending on Instagram Explore</span>
+              <span>Trending on Explore</span>
             </h3>
             <span className="text-[11px] text-slate-500">{filteredExploreItems.length} items</span>
           </div>

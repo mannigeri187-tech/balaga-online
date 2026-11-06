@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { SocialProfile } from "@platform/shared-types";
 import { useWorld } from "../../contexts/WorldContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { SocialProfileEditor } from "./SocialProfileEditor";
 import { Button } from "../../components/ui/Button";
 import {
@@ -20,6 +21,17 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Lock,
+  Eye,
+  EyeOff,
+  QrCode,
+  Briefcase,
+  Bell,
+  LogOut,
+  Check,
+  Upload,
+  Shield,
+  Copy,
 } from "lucide-react";
 
 interface SocialProfileViewProps {
@@ -34,6 +46,7 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   onNavigateTab,
 }) => {
   const { socialProfile } = useWorld();
+  const { logout } = useAuth();
   const [profile, setProfile] = useState<SocialProfile | null>(
     propProfile || socialProfile || null
   );
@@ -42,14 +55,40 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
 
+  // Settings & Modals State (Instagram-style Settings Action Sheet matching Pic 3)
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const [isProfessionalModalOpen, setIsProfessionalModalOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isLikedModalOpen, setIsLikedModalOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
+  // Privacy State: Private vs Public
+  const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(() => {
+    return localStorage.getItem("balaga_is_private") === "true";
+  });
+  const [viewAsVisitor, setViewAsVisitor] = useState(false);
+
+  // Professional Account Settings (accounts/professional_account_settings)
+  const [isProfessionalAccount, setIsProfessionalAccount] = useState<boolean>(() => {
+    return localStorage.getItem("balaga_is_pro") === "true";
+  });
+  const [professionalCategory, setProfessionalCategory] = useState<string>(() => {
+    return localStorage.getItem("balaga_pro_cat") || "Creator";
+  });
+  const [showCategoryLabel, setShowCategoryLabel] = useState<boolean>(() => {
+    return localStorage.getItem("balaga_show_cat") !== "false";
+  });
+  const [proEmail, setProEmail] = useState("aarav.social@balaga.online");
+
   // 1. Note State & Modal (Instagram Note Feature)
   const [activeNote, setActiveNote] = useState<string | null>("Filter coffee & sketches ☕");
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState(activeNote || "");
 
-  // 2. Profile Photo Modal
+  // 2. Profile Photo Modal & Local File Upload Ref
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [photoUrlInput, setPhotoUrlInput] = useState("");
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
 
   // 3. Highlights State & Viewer Modal
   const [highlights, setHighlights] = useState([
@@ -172,14 +211,125 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
     setIsNoteModalOpen(false);
   };
 
+  // Load saved avatar and listen for new posts
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem("balaga_social_avatar");
+    if (savedAvatar) {
+      setProfile((prev) => (prev ? { ...prev, avatarUrl: savedAvatar } : prev));
+    }
+
+    try {
+      const storedPosts = JSON.parse(localStorage.getItem("balaga_user_posts") || "[]");
+      if (storedPosts.length > 0) {
+        setUserPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newItems = storedPosts
+            .filter((sp: any) => !existingIds.has(sp.id))
+            .map((sp: any) => ({
+              id: sp.id,
+              imageUrl: sp.mediaUrls?.[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+              caption: sp.content,
+              likesCount: sp.likesCount || 0,
+              commentsCount: sp.commentsCount || 0,
+            }));
+          return [...newItems, ...prev];
+        });
+      }
+    } catch {}
+
+    const onPostCreated = (e: any) => {
+      if (e.detail) {
+        const p = e.detail;
+        setUserPosts((prev) => [
+          {
+            id: p.id,
+            imageUrl: p.mediaUrls?.[0] || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+            caption: p.content,
+            likesCount: 0,
+            commentsCount: 0,
+          },
+          ...prev,
+        ]);
+      }
+    };
+    window.addEventListener("balaga:new-post", onPostCreated);
+    return () => window.removeEventListener("balaga:new-post", onPostCreated);
+  }, []);
+
   // Handle Update Profile Photo
   const handleSavePhoto = (newUrl: string) => {
     if (!profile) return;
     const updated = { ...profile, avatarUrl: newUrl };
     setProfile(updated);
+    try {
+      localStorage.setItem("balaga_social_avatar", newUrl);
+    } catch {}
     setIsPhotoModalOpen(false);
     setPhotoUrlInput("");
   };
+
+  // Handle Local Photo Upload from folder/device
+  const handleLocalAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        handleSavePhoto(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle Save Professional Account Settings
+  const handleSaveProfessionalSettings = () => {
+    try {
+      localStorage.setItem("balaga_is_pro", isProfessionalAccount ? "true" : "false");
+      localStorage.setItem("balaga_pro_cat", professionalCategory);
+      localStorage.setItem("balaga_show_cat", showCategoryLabel ? "true" : "false");
+    } catch {}
+    setIsProfessionalModalOpen(false);
+  };
+
+  // Handle Save Account Privacy
+  const handleSavePrivacySettings = () => {
+    try {
+      localStorage.setItem("balaga_is_private", isPrivateAccount ? "true" : "false");
+    } catch {}
+    setIsPrivacyModalOpen(false);
+  };
+
+  // Sample Liked Posts and Reels list
+  const likedPostsList = [
+    {
+      id: "lp-1",
+      imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+      caption: "Sunrise misty coffee session in Coorg 🌲☕",
+      likesCount: 342,
+      commentsCount: 28,
+    },
+    {
+      id: "lp-2",
+      imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+      caption: "Live acrylic art exhibition in Bangalore 🎨",
+      likesCount: 521,
+      commentsCount: 45,
+    },
+    {
+      id: "lp-3",
+      imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80",
+      caption: "Cycling rollout to Nandi foothills 🚴",
+      likesCount: 189,
+      commentsCount: 16,
+    },
+    {
+      id: "lp-4",
+      imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80",
+      caption: "Filter coffee brewing masterclass notes ☕",
+      likesCount: 420,
+      commentsCount: 34,
+    },
+  ];
 
   // Handle Add Highlight
   const handleCreateHighlight = (e: React.FormEvent) => {
@@ -279,6 +429,12 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
             <h1 className="text-xl md:text-2xl font-normal text-slate-100 flex items-center justify-center sm:justify-start gap-2">
               <span>{profile.username}</span>
+              {isPrivateAccount && (
+                <span title="Private Account" className="inline-flex items-center text-slate-300 bg-slate-800/90 px-2 py-0.5 rounded-full text-[11px] gap-1 border border-slate-700/80">
+                  <Lock className="w-3 h-3 text-slate-300" />
+                  <span>Private</span>
+                </span>
+              )}
             </h1>
 
             {isSelf ? (
@@ -300,12 +456,28 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                   View archive
                 </Button>
                 <button
-                  onClick={() => setIsEditorOpen(true)}
+                  onClick={() => setIsSettingsMenuOpen(true)}
                   className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
                   title="Profile Settings"
                 >
                   <Settings className="w-5 h-5" />
                 </button>
+
+                {isPrivateAccount && (
+                  <button
+                    type="button"
+                    onClick={() => setViewAsVisitor(!viewAsVisitor)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-colors ${
+                      viewAsVisitor
+                        ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                        : "bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200"
+                    }`}
+                    title="Toggle preview of what visitors see"
+                  >
+                    {viewAsVisitor ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    <span>{viewAsVisitor ? "Exit Preview" : "Visitor View"}</span>
+                  </button>
+                )}
               </div>
             ) : (
               <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -346,7 +518,7 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
             </div>
           </div>
 
-          {/* Row 3: Display Name, Pronouns & Bio */}
+          {/* Row 3: Display Name, Pronouns, Category & Bio */}
           <div className="space-y-1 text-xs sm:text-sm">
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <span className="font-semibold text-slate-100">{profile.displayName}</span>
@@ -354,6 +526,15 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 <span className="text-slate-400 text-xs">({profile.pronouns})</span>
               )}
             </div>
+
+            {/* Professional Category Label */}
+            {isProfessionalAccount && showCategoryLabel && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-violet-400 bg-violet-950/40 border border-violet-800/40 px-2 py-0.5 rounded-md inline-block">
+                  {professionalCategory}
+                </span>
+              </div>
+            )}
 
             {profile.bio && (
               <p className="text-slate-200 whitespace-pre-line leading-relaxed max-w-lg">
@@ -439,112 +620,129 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         </div>
       </section>
 
-      {/* 3. INSTAGRAM TABS (POSTS, SAVED, TAGGED) */}
-      <div className="border-t border-slate-800">
-        <div className="flex items-center justify-center gap-12 sm:gap-16 text-xs font-semibold uppercase tracking-wider">
-          <button
-            onClick={() => setActiveTab("posts")}
-            className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
-              activeTab === "posts"
-                ? "border-white text-white"
-                : "border-transparent text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <Grid className="w-3.5 h-3.5" />
-            <span>Posts</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("saved")}
-            className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
-              activeTab === "saved"
-                ? "border-white text-white"
-                : "border-transparent text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <Bookmark className="w-3.5 h-3.5" />
-            <span>Saved</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("tagged")}
-            className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
-              activeTab === "tagged"
-                ? "border-white text-white"
-                : "border-transparent text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Tagged</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4. POSTS GRID (3-Column square layout with hover overlays) */}
-      {activeTab === "posts" && (
-        <div className="grid grid-cols-3 gap-1 md:gap-6">
-          {userPosts.map((post) => (
-            <div
-              key={post.id}
-              onClick={() => setSelectedPost(post)}
-              className="relative aspect-square bg-slate-900 overflow-hidden group cursor-pointer"
-            >
-              <img
-                src={post.imageUrl}
-                alt={post.caption}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-
-              {/* Hover Overlay with Likes & Comments count */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 sm:gap-6 text-white text-xs sm:text-sm font-bold transition-opacity duration-150">
-                <span className="flex items-center gap-1.5">
-                  <Heart className="w-4 h-4 fill-white" />
-                  <span>{post.likesCount}</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <MessageCircle className="w-4 h-4 fill-white" />
-                  <span>{post.commentsCount}</span>
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* SAVED TAB */}
-      {activeTab === "saved" && (
-        <div className="grid grid-cols-3 gap-1 md:gap-6">
-          {userPosts.slice(0, 3).map((post) => (
-            <div
-              key={post.id}
-              onClick={() => setSelectedPost(post)}
-              className="relative aspect-square bg-slate-900 overflow-hidden group cursor-pointer"
-            >
-              <img
-                src={post.imageUrl}
-                alt={post.caption}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 sm:gap-6 text-white text-xs sm:text-sm font-bold transition-opacity duration-150">
-                <span className="flex items-center gap-1.5">
-                  <Bookmark className="w-4 h-4 fill-white" />
-                  <span>Saved</span>
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* TAGGED TAB */}
-      {activeTab === "tagged" && (
-        <div className="py-16 text-center space-y-3">
-          <div className="w-16 h-16 rounded-full border-2 border-slate-700 flex items-center justify-center mx-auto text-slate-400">
-            <UserCheck className="w-8 h-8" />
+      {/* 3. TABS OR PRIVATE ACCOUNT SHIELD */}
+      {isPrivateAccount && (viewAsVisitor || !isSelf) ? (
+        <div className="border-t border-slate-800 pt-16 pb-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full border-2 border-slate-700 flex items-center justify-center mx-auto text-slate-300">
+            <Lock className="w-7 h-7" />
           </div>
-          <h3 className="font-bold text-sm text-slate-100">Photos of you</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            When people tag you in photos and reels, they will appear here.
-          </p>
+          <div className="space-y-1">
+            <h3 className="font-bold text-sm text-slate-100">This account is private</h3>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              Follow this account to see their photos and videos.
+            </p>
+          </div>
         </div>
+      ) : (
+        <>
+          {/* TABS (POSTS, SAVED, TAGGED) */}
+          <div className="border-t border-slate-800">
+            <div className="flex items-center justify-center gap-12 sm:gap-16 text-xs font-semibold uppercase tracking-wider">
+              <button
+                onClick={() => setActiveTab("posts")}
+                className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
+                  activeTab === "posts"
+                    ? "border-white text-white"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                <Grid className="w-3.5 h-3.5" />
+                <span>Posts</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("saved")}
+                className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
+                  activeTab === "saved"
+                    ? "border-white text-white"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                <span>Saved</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("tagged")}
+                className={`py-3.5 flex items-center gap-1.5 transition-colors border-t-2 -mt-[2px] ${
+                  activeTab === "tagged"
+                    ? "border-white text-white"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Tagged</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4. POSTS GRID (3-Column square layout with hover overlays) */}
+          {activeTab === "posts" && (
+            <div className="grid grid-cols-3 gap-1 md:gap-6">
+              {userPosts.map((post) => (
+                <div
+                  key={post.id}
+                  onClick={() => setSelectedPost(post)}
+                  className="relative aspect-square bg-slate-900 overflow-hidden group cursor-pointer"
+                >
+                  <img
+                    src={post.imageUrl}
+                    alt={post.caption}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+
+                  {/* Hover Overlay with Likes & Comments count */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 sm:gap-6 text-white text-xs sm:text-sm font-bold transition-opacity duration-150">
+                    <span className="flex items-center gap-1.5">
+                      <Heart className="w-4 h-4 fill-white" />
+                      <span>{post.likesCount}</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      <span>{post.commentsCount}</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* SAVED TAB */}
+          {activeTab === "saved" && (
+            <div className="grid grid-cols-3 gap-1 md:gap-6">
+              {userPosts.slice(0, 3).map((post) => (
+                <div
+                  key={post.id}
+                  onClick={() => setSelectedPost(post)}
+                  className="relative aspect-square bg-slate-900 overflow-hidden group cursor-pointer"
+                >
+                  <img
+                    src={post.imageUrl}
+                    alt={post.caption}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 sm:gap-6 text-white text-xs sm:text-sm font-bold transition-opacity duration-150">
+                    <span className="flex items-center gap-1.5">
+                      <Bookmark className="w-4 h-4 fill-white" />
+                      <span>Saved</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAGGED TAB */}
+          {activeTab === "tagged" && (
+            <div className="py-16 text-center space-y-3">
+              <div className="w-16 h-16 rounded-full border-2 border-slate-700 flex items-center justify-center mx-auto text-slate-400">
+                <UserCheck className="w-8 h-8" />
+              </div>
+              <h3 className="font-bold text-sm text-slate-100">Photos of you</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                When people tag you in photos and reels, they will appear here.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {/* MODAL 1: NEW NOTE MODAL (Matches user screenshot 1) */}
@@ -642,10 +840,10 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         </div>
       )}
 
-      {/* MODAL 2: CHANGE PROFILE PHOTO MODAL */}
+      {/* MODAL 2: CHANGE PROFILE PHOTO MODAL (Local folder/photos upload) */}
       {isPhotoModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="font-bold text-sm text-slate-100">Change Profile Photo</h3>
               <button
@@ -656,47 +854,79 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
-              Select an avatar preset or enter an image URL to update your Socializing profile picture:
-            </p>
+            {/* Hidden file input for local folder/photos */}
+            <input
+              ref={avatarFileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLocalAvatarUpload}
+            />
 
-            {/* Presets */}
-            <div className="grid grid-cols-4 gap-2 pt-1">
-              {[
-                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
-                "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80",
-                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
-                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
-              ].map((url, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSavePhoto(url)}
-                  className="aspect-square rounded-xl overflow-hidden border border-slate-700 hover:border-violet-400 transition-colors"
-                >
-                  <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {/* Upload from Local Device / Photos Button */}
+            <button
+              type="button"
+              onClick={() => avatarFileInputRef.current?.click()}
+              className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-2.5 shadow-lg shadow-violet-900/30 transition-all active:scale-[0.98]"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload photo from computer / photos</span>
+            </button>
 
-            {/* Custom URL Input */}
-            <div className="space-y-2 pt-2">
-              <label className="text-[11px] font-semibold text-slate-300 block">Or Image URL</label>
-              <input
-                type="url"
-                value={photoUrlInput}
-                onChange={(e) => setPhotoUrlInput(e.target.value)}
-                placeholder="https://images.unsplash.com/photo-..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200"
-              />
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={!photoUrlInput.trim()}
-                onClick={() => handleSavePhoto(photoUrlInput.trim())}
-                className="w-full mt-2"
+            {/* Remove Current Photo */}
+            {profile.avatarUrl && (
+              <button
+                type="button"
+                onClick={() => handleSavePhoto("")}
+                className="w-full py-2.5 px-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs rounded-2xl border border-rose-500/30 transition-colors"
               >
-                Save Photo
-              </Button>
+                Remove Current Photo
+              </button>
+            )}
+
+            <div className="pt-2 border-t border-slate-800">
+              <p className="text-[11px] font-semibold text-slate-400 mb-2">
+                Or pick from sample avatars:
+              </p>
+
+              {/* Presets */}
+              <div className="grid grid-cols-4 gap-2 pt-1">
+                {[
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80",
+                  "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80",
+                  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
+                ].map((url, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSavePhoto(url)}
+                    className="aspect-square rounded-xl overflow-hidden border border-slate-700 hover:border-violet-400 transition-colors"
+                  >
+                    <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom URL Input */}
+              <div className="space-y-2 pt-3">
+                <label className="text-[11px] font-semibold text-slate-400 block">Or Image URL</label>
+                <input
+                  type="url"
+                  value={photoUrlInput}
+                  onChange={(e) => setPhotoUrlInput(e.target.value)}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200"
+                />
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={!photoUrlInput.trim()}
+                  onClick={() => handleSavePhoto(photoUrlInput.trim())}
+                  className="w-full mt-2"
+                >
+                  Save URL Photo
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -876,6 +1106,395 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
             setProfile({ ...profile, ...updated });
           }}
         />
+      )}
+
+      {/* MODAL 6: SETTINGS ACTION SHEET MODAL (MATCHING PIC 3) */}
+      {isSettingsMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl divide-y divide-slate-800/80 text-center">
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                setIsProfessionalModalOpen(true);
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-100 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <Briefcase className="w-4 h-4 text-violet-400" />
+              <span>Professional account</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                setIsPrivacyModalOpen(true);
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-100 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <span>Settings and privacy</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                setIsLikedModalOpen(true);
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-100 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <Heart className="w-4 h-4 text-rose-400" />
+              <span>Liked posts & reels</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                setActiveTab("saved");
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-100 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <Bookmark className="w-4 h-4 text-amber-400" />
+              <span>Saved</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                setIsQrModalOpen(true);
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-100 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <QrCode className="w-4 h-4 text-blue-400" />
+              <span>QR code</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                onNavigateTab?.("notifications");
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-100 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <Bell className="w-4 h-4 text-yellow-400" />
+              <span>Notifications</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSettingsMenuOpen(false);
+                logout();
+              }}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-rose-400 hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2"
+            >
+              <LogOut className="w-4 h-4 text-rose-400" />
+              <span>Log Out</span>
+            </button>
+
+            <button
+              onClick={() => setIsSettingsMenuOpen(false)}
+              className="w-full py-3.5 px-4 text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 7: PROFESSIONAL ACCOUNT SETTINGS (accounts/professional_account_settings) */}
+      {isProfessionalModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-violet-400" />
+                <h2 className="text-sm font-bold text-slate-100">Professional account settings</h2>
+              </div>
+              <button
+                onClick={() => setIsProfessionalModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Account Type */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-300 block">Account Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsProfessionalAccount(true)}
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                    isProfessionalAccount
+                      ? "border-violet-500 bg-violet-950/30 text-white"
+                      : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="font-bold text-xs flex items-center justify-between">
+                    <span>Creator / Pro</span>
+                    {isProfessionalAccount && <Check className="w-4 h-4 text-violet-400" />}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    For public figures, content producers, artists, and founders.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsProfessionalAccount(false)}
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                    !isProfessionalAccount
+                      ? "border-violet-500 bg-violet-950/30 text-white"
+                      : "border-slate-800 bg-slate-950/50 text-slate-400 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="font-bold text-xs flex items-center justify-between">
+                    <span>Personal</span>
+                    {!isProfessionalAccount && <Check className="w-4 h-4 text-violet-400" />}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Standard personal social profile for friends and family.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Category Selector */}
+            {isProfessionalAccount && (
+              <div className="space-y-4 pt-2 border-t border-slate-800">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-300 block">
+                    Category
+                  </label>
+                  <p className="text-[11px] text-slate-400">
+                    Choose a category that best describes your profile:
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {[
+                      "Creator",
+                      "Entrepreneur",
+                      "Software Engineer",
+                      "Digital Creator",
+                      "Artist & Designer",
+                      "Photographer",
+                      "Writer / Journalist",
+                      "Health & Fitness",
+                      "Community Builder",
+                    ].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setProfessionalCategory(cat)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                          professionalCategory === cat
+                            ? "bg-violet-600 text-white border-violet-500"
+                            : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Display Category on Profile Toggle */}
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+                  <div className="pr-3">
+                    <span className="text-xs font-bold text-slate-200 block">
+                      Display category label on profile
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Shows &quot;{professionalCategory}&quot; badge on your profile
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCategoryLabel(!showCategoryLabel)}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors shrink-0 ${
+                      showCategoryLabel ? "bg-violet-600" : "bg-slate-700"
+                    }`}
+                  >
+                    <div
+                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                        showCategoryLabel ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* Public Business Email */}
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300 block">
+                    Public Contact Email
+                  </label>
+                  <input
+                    type="email"
+                    value={proEmail}
+                    onChange={(e) => setProEmail(e.target.value)}
+                    placeholder="contact@balaga.online"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Save button */}
+            <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsProfessionalModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveProfessionalSettings}
+                className="bg-violet-600 hover:bg-violet-500 font-bold"
+              >
+                Save Settings
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 8: ACCOUNT PRIVACY (SETTINGS AND PRIVACY) */}
+      {isPrivacyModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-sm font-bold text-slate-100">Account Privacy</h2>
+              </div>
+              <button
+                onClick={() => setIsPrivacyModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Toggle switch */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="space-y-1 pr-4">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold text-slate-100">Private account</span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  When your account is private, only people you approve can see your photos and reels. Your account name, username, and bio remain visible to others.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivateAccount(!isPrivateAccount)}
+                className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors shrink-0 ${
+                  isPrivateAccount ? "bg-emerald-600" : "bg-slate-700"
+                }`}
+              >
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                    isPrivateAccount ? "translate-x-6" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-3">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSavePrivacySettings}
+                className="w-full bg-emerald-600 hover:bg-emerald-500 font-bold"
+              >
+                Save Privacy Preference
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 9: LIKED POSTS & REELS */}
+      {isLikedModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
+                <h2 className="text-sm font-bold text-slate-100">Liked posts & reels</h2>
+              </div>
+              <button
+                onClick={() => setIsLikedModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-1">
+              <div className="grid grid-cols-3 gap-2">
+                {likedPostsList.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setIsLikedModalOpen(false);
+                      setSelectedPost(item);
+                    }}
+                    className="relative aspect-square rounded-xl overflow-hidden group cursor-pointer border border-slate-800"
+                  >
+                    <img src={item.imageUrl} alt={item.caption} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 text-white text-xs font-bold transition-opacity">
+                      <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
+                      <span>{item.likesCount}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 10: QR CODE */}
+      {isQrModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Profile QR Code</span>
+              <button onClick={() => setIsQrModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* QR Card with gradient */}
+            <div className="p-6 rounded-2xl bg-gradient-to-tr from-violet-600 via-pink-600 to-amber-500 flex flex-col items-center justify-center shadow-xl">
+              <div className="p-4 bg-white rounded-2xl shadow-2xl">
+                <QrCode className="w-36 h-36 text-slate-950" />
+              </div>
+              <span className="text-white font-bold text-sm mt-3 tracking-wide drop-shadow">
+                @{profile.username}
+              </span>
+              <span className="text-white/80 text-[11px] drop-shadow">Balaga Socializing</span>
+            </div>
+
+            <div className="space-y-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard?.writeText(`https://balaga.online/@${profile.username}`);
+                  alert("Profile link copied to clipboard!");
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 font-bold"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Profile Link</span>
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
