@@ -30,6 +30,7 @@ import {
   Zap,
   Presentation,
   Globe,
+  Award,
 } from "lucide-react";
 import {
   FounderPublicProfileModal,
@@ -43,6 +44,7 @@ import { TechTalkMasterclassModal } from "./TechTalkMasterclassModal";
 import { CustomSubdomainModal } from "./CustomSubdomainModal";
 import { HonestDomainPulseModal } from "./HonestDomainPulseModal";
 import { ProofOfTractionModal } from "./ProofOfTractionModal";
+import { VerifiableKudosModal } from "./VerifiableKudosModal";
 
 interface FoundersDashboardProps {
   onNavigateTab?: (tab: string) => void;
@@ -110,6 +112,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isSubdomainModalOpen, setIsSubdomainModalOpen] = useState(false);
   const [isDomainPulseModalOpen, setIsDomainPulseModalOpen] = useState(false);
   const [isProofOfTractionModalOpen, setIsProofOfTractionModalOpen] = useState(false);
+  const [isKudosModalOpen, setIsKudosModalOpen] = useState(false);
   const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
   const [selectedProposalToCounter, setSelectedProposalToCounter] = useState<any | null>(null);
   const [counterCommercialTerms, setCounterCommercialTerms] = useState("20% Mutual Referral Share + Co-branding");
@@ -854,6 +857,14 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             className="bg-slate-900 border border-cyan-500/40 text-cyan-300 hover:bg-slate-800 text-xs"
           >
             Traction Launches 🚀
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsKudosModalOpen(true)}
+            icon={<Award className="w-3.5 h-3.5 text-amber-400" />}
+            className="bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-slate-800 text-xs"
+          >
+            Kudos Proof 🎖️
           </Button>
         </div>
       </div>
@@ -2460,6 +2471,14 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
       <ProofOfTractionModal
         isOpen={isProofOfTractionModalOpen}
         onClose={() => setIsProofOfTractionModalOpen(false)}
+      />
+
+      {/* ========================================================
+          VERIFIABLE PROOF-OF-SKILL KUDOS (F23)
+      ======================================================== */}
+      <VerifiableKudosModal
+        isOpen={isKudosModalOpen}
+        onClose={() => setIsKudosModalOpen(false)}
       />
     </div>
   );

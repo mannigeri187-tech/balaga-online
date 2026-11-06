@@ -18,11 +18,13 @@ import {
   Radio,
   Package,
   GraduationCap,
+  Headphones,
 } from "lucide-react";
 import { CircleSplitModal } from "./CircleSplitModal";
 import { RapidHuddleModal } from "./RapidHuddleModal";
 import { CircleGearSwapModal } from "./CircleGearSwapModal";
 import { CampusHubModal } from "./CampusHubModal";
+import { AmbientThirdSpaceModal } from "./AmbientThirdSpaceModal";
 
 export const SocialCommunities: React.FC = () => {
   const { socialProfile } = useWorld();
@@ -35,6 +37,7 @@ export const SocialCommunities: React.FC = () => {
   const [isHuddleOpen, setIsHuddleOpen] = useState(false);
   const [isGearSwapOpen, setIsGearSwapOpen] = useState(false);
   const [isCampusHubOpen, setIsCampusHubOpen] = useState(false);
+  const [isThirdSpaceOpen, setIsThirdSpaceOpen] = useState(false);
 
   // Communities State
   const [communities, setCommunities] = useState<SocialCommunity[]>([
@@ -317,6 +320,15 @@ export const SocialCommunities: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Headphones className="w-4 h-4 text-cyan-400" />}
+            onClick={() => setIsThirdSpaceOpen(true)}
+            className="shrink-0 bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-200"
+          >
+            Third Space 🎧
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -788,6 +800,12 @@ export const SocialCommunities: React.FC = () => {
       <CampusHubModal
         isOpen={isCampusHubOpen}
         onClose={() => setIsCampusHubOpen(false)}
+      />
+
+      {/* AMBIENT THIRD SPACE (S21) */}
+      <AmbientThirdSpaceModal
+        isOpen={isThirdSpaceOpen}
+        onClose={() => setIsThirdSpaceOpen(false)}
       />
     </div>
   );
