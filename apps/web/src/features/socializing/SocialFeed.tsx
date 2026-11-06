@@ -24,9 +24,13 @@ import {
   Rocket,
   IndianRupee,
   Handshake,
+  Languages,
+  ShieldAlert,
 } from "lucide-react";
 import { WORLDS } from "@platform/config";
 import { FlashHangoutRadar } from "./FlashHangoutRadar";
+import { GuardianSafeJourneyModal } from "./GuardianSafeJourneyModal";
+import { translateWithBhasha } from "./bhashaEngine";
 
 import {
   SocialPublicProfileModal,
@@ -48,6 +52,8 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   const [followingUsernames, setFollowingUsernames] = useState<Set<string>>(new Set(["priya_art"]));
   const [flippedPostIds, setFlippedPostIds] = useState<Set<string>>(new Set());
   const [tippingPostId, setTippingPostId] = useState<string | null>(null);
+  const [isGuardianModalOpen, setIsGuardianModalOpen] = useState(false);
+  const [translatedPostIds, setTranslatedPostIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (initialTab) {
@@ -769,6 +775,34 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
       {/* 2. FLASH HANGOUT RADAR (120-Min Real-World Beacons) */}
       <FlashHangoutRadar />
 
+      {/* 2.5 GUARDIAN SAFE-JOURNEY BEACON (S17) */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+            <ShieldAlert className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-white flex items-center gap-2">
+              Guardian Safe-Journey Beacon
+              <span className="text-[9px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1 py-0.5 rounded">
+                PEER SAFETY
+              </span>
+            </h4>
+            <p className="text-[11px] text-slate-400">
+              Safe transit check-in with trusted friends when traveling home at night.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsGuardianModalOpen(true)}
+          className="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 rounded-xl font-semibold text-xs transition-colors shrink-0 flex items-center gap-1.5"
+        >
+          <span>Start Beacon 🛡️</span>
+        </button>
+      </div>
+
       {/* 3. FEED TABS */}
       <div className="flex border-b border-slate-800">
         <button
@@ -1107,9 +1141,48 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
                 ) : (
                   /* FRONT FACE: ORIGINAL SOCIAL CONTENT */
                   <>
-                    <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
-                      {post.content}
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                        {translatedPostIds.has(post.id)
+                          ? translateWithBhasha(post.content).translatedText
+                          : post.content}
+                      </p>
+
+                      {/* BHASHA CULTURAL TRANSLATION ENGINE (S16) */}
+                      {translateWithBhasha(post.content).hasSlang && (
+                        <div className="pt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTranslatedPostIds((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(post.id)) next.delete(post.id);
+                                else next.add(post.id);
+                                return next;
+                              });
+                            }}
+                            className="px-2 py-0.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center gap-1 font-medium transition-colors"
+                          >
+                            <Languages className="w-3 h-3 text-violet-400" />
+                            <span>
+                              {translatedPostIds.has(post.id) ? "Show Original" : "Bhasha Nuance 🌐"}
+                            </span>
+                          </button>
+
+                          {/* Slang Glossary Pills */}
+                          {translateWithBhasha(post.content).detectedSlangs.map((s) => (
+                            <span
+                              key={s.term}
+                              className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1"
+                              title={`${s.language}: ${s.meaning}. ${s.culturalNote}`}
+                            >
+                              <span className="font-semibold text-amber-300">{s.term}:</span>
+                              <span>{s.meaning}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Attached Photo */}
                     {post.mediaUrls && post.mediaUrls.length > 0 && (
@@ -1742,6 +1815,12 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
           onToggleFollow={handleToggleFollow}
         />
       )}
+
+      {/* GUARDIAN SAFE-JOURNEY MODAL (S17) */}
+      <GuardianSafeJourneyModal
+        isOpen={isGuardianModalOpen}
+        onClose={() => setIsGuardianModalOpen(false)}
+      />
     </div>
   );
 };
