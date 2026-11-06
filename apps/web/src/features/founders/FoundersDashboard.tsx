@@ -28,6 +28,8 @@ import {
   Laptop,
   Trophy,
   Zap,
+  Presentation,
+  Globe,
 } from "lucide-react";
 import {
   FounderPublicProfileModal,
@@ -37,6 +39,8 @@ import { ForkableBlueprintsModal } from "./ForkableBlueprintsModal";
 import { CodeCastCanvasModal } from "./CodeCastCanvasModal";
 import { HackathonSquadModal } from "./HackathonSquadModal";
 import { SpeedMentorshipModal } from "./SpeedMentorshipModal";
+import { TechTalkMasterclassModal } from "./TechTalkMasterclassModal";
+import { CustomSubdomainModal } from "./CustomSubdomainModal";
 
 interface FoundersDashboardProps {
   onNavigateTab?: (tab: string) => void;
@@ -100,6 +104,8 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isCodeCastModalOpen, setIsCodeCastModalOpen] = useState(false);
   const [isHackathonModalOpen, setIsHackathonModalOpen] = useState(false);
   const [isSpeedMentorshipOpen, setIsSpeedMentorshipOpen] = useState(false);
+  const [isTechTalkModalOpen, setIsTechTalkModalOpen] = useState(false);
+  const [isSubdomainModalOpen, setIsSubdomainModalOpen] = useState(false);
   const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
   const [selectedProposalToCounter, setSelectedProposalToCounter] = useState<any | null>(null);
   const [counterCommercialTerms, setCounterCommercialTerms] = useState("20% Mutual Referral Share + Co-branding");
@@ -776,7 +782,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             </span>
           </div>
           <p className="text-xs text-slate-400">
-            Next-generation tools for Indian founders: forkable templates, live webgl code cast, hackathon squad builder, and 120s speed mentorship.
+            Next-generation tools for Indian founders: blueprints, code cast, hackathon squads, 2-min mentorship, tech talk slides sync, and custom subdomains.
           </p>
         </div>
 
@@ -787,7 +793,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             icon={<GitFork className="w-3.5 h-3.5 text-emerald-400" />}
             className="bg-slate-900 border border-emerald-500/40 text-emerald-300 hover:bg-slate-800 text-xs"
           >
-            Fork Blueprints ⚡
+            Blueprints ⚡
           </Button>
           <Button
             size="sm"
@@ -803,7 +809,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             icon={<Trophy className="w-3.5 h-3.5 text-amber-400" />}
             className="bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-slate-800 text-xs"
           >
-            Hackathon Squads 🏆
+            Squads 🏆
           </Button>
           <Button
             size="sm"
@@ -811,7 +817,23 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             icon={<Zap className="w-3.5 h-3.5 text-yellow-400" />}
             className="bg-slate-900 border border-yellow-500/40 text-yellow-300 hover:bg-slate-800 text-xs"
           >
-            2-Min Mentorship ⚡
+            2-Min Sparks ⚡
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsTechTalkModalOpen(true)}
+            icon={<Presentation className="w-3.5 h-3.5 text-purple-400" />}
+            className="bg-slate-900 border border-purple-500/40 text-purple-300 hover:bg-slate-800 text-xs"
+          >
+            Tech Talks 📽️
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsSubdomainModalOpen(true)}
+            icon={<Globe className="w-3.5 h-3.5 text-orange-400" />}
+            className="bg-slate-900 border border-orange-500/40 text-orange-300 hover:bg-slate-800 text-xs"
+          >
+            Subdomains 🌐
           </Button>
         </div>
       </div>
@@ -2386,6 +2408,22 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
       <SpeedMentorshipModal
         isOpen={isSpeedMentorshipOpen}
         onClose={() => setIsSpeedMentorshipOpen(false)}
+      />
+
+      {/* ========================================================
+          TECH TALK SYNC & SLIDE MASTERCLASS (F19)
+      ======================================================== */}
+      <TechTalkMasterclassModal
+        isOpen={isTechTalkModalOpen}
+        onClose={() => setIsTechTalkModalOpen(false)}
+      />
+
+      {/* ========================================================
+          CUSTOM STARTUP SUBDOMAINS (F20)
+      ======================================================== */}
+      <CustomSubdomainModal
+        isOpen={isSubdomainModalOpen}
+        onClose={() => setIsSubdomainModalOpen(false)}
       />
     </div>
   );
