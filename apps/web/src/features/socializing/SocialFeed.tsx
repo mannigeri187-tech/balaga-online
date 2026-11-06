@@ -29,6 +29,7 @@ import {
   Code,
   TrendingUp,
   Bot,
+  Sparkles,
 } from "lucide-react";
 import { WORLDS } from "@platform/config";
 import { FlashHangoutRadar } from "./FlashHangoutRadar";
@@ -37,6 +38,7 @@ import { MicroAppsContainerModal } from "./MicroAppsContainerModal";
 import { PredictionStakesModal } from "./PredictionStakesModal";
 import { AutonomousSocialTwinModal } from "./AutonomousSocialTwinModal";
 import { translateWithBhasha } from "./bhashaEngine";
+import { IntelligenceControlModal } from "../../components/IntelligenceControlModal";
 
 import {
   SocialPublicProfileModal,
@@ -62,6 +64,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   const [isMicroAppsModalOpen, setIsMicroAppsModalOpen] = useState(false);
   const [isPredictionModalOpen, setIsPredictionModalOpen] = useState(false);
   const [isTwinModalOpen, setIsTwinModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [translatedPostIds, setTranslatedPostIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -851,6 +854,14 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
           >
             Social Twin 🤖
           </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsAiModalOpen(true)}
+            icon={<Sparkles className="w-3.5 h-3.5 text-amber-400" />}
+            className="bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-slate-800 text-xs shrink-0"
+          >
+            AI Digest 📢
+          </Button>
         </div>
       </div>
 
@@ -971,6 +982,22 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
               }`}
             >
               <BarChart2 className="w-4 h-4" /> Poll
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const sampleCaptions = [
+                  "Filtered sunlight, cold coffee, and unhurried Bangalore mornings. Sometimes the best stories happen without a schedule. ☕✨",
+                  "Weekend drills completed! 60 minutes of sweat, laughs, and good energy with the badminton crew. 🏸🔥",
+                  "Pausing between frames. 📸 #NammaBengaluru #LifeInChapters",
+                ];
+                setPostText(sampleCaptions[Math.floor(Math.random() * sampleCaptions.length)]);
+              }}
+              className="px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 text-amber-300 hover:text-amber-200 hover:bg-amber-950/40 border border-amber-500/30 transition-colors"
+              title="Draft Creative AI Caption"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>AI Caption ✨</span>
             </button>
           </div>
 
@@ -1889,6 +1916,12 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
       <AutonomousSocialTwinModal
         isOpen={isTwinModalOpen}
         onClose={() => setIsTwinModalOpen(false)}
+      />
+
+      {/* BALAGA SOCIAL INTELLIGENCE ASSISTANT (MILESTONE 2) */}
+      <IntelligenceControlModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
       />
     </div>
   );

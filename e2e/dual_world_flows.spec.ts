@@ -136,4 +136,33 @@ test.describe("Balaga.online Dual-World E2E Test Suite", () => {
     await closeBtn.click();
     await expect(page.locator("h2:has-text('Balaga Intelligence')")).not.toBeVisible();
   });
+
+  test("7. Milestone 2: Socializing AI Caption and Digest triggers operate smoothly", async ({ page }) => {
+    // Ensure in Socializing
+    const switcherBtn = page.locator("button[aria-haspopup='true']");
+    const currentWorldText = await switcherBtn.textContent();
+    if (!currentWorldText?.includes("Socializing")) {
+      await switcherBtn.click();
+      await page.locator("button:has-text('Socializing')").first().click();
+      await page.waitForTimeout(500);
+    }
+
+    // Verify AI Digest button in Innovations bar
+    const aiDigestBtn = page.locator("button:has-text('AI Digest 📢')").first();
+    await expect(aiDigestBtn).toBeVisible();
+    await aiDigestBtn.click();
+
+    // Verify Intelligence modal opens with Community Digest active
+    await expect(page.locator("h2:has-text('Balaga Intelligence')")).toBeVisible();
+    await expect(page.locator("button:has-text('Community Digest 📢')")).toBeVisible();
+
+    // Close modal
+    await page.locator("button:has-text('Close')").last().click();
+    await expect(page.locator("h2:has-text('Balaga Intelligence')")).not.toBeVisible();
+
+    // Verify AI Caption button in post composer
+    const aiCaptionBtn = page.locator("button:has-text('AI Caption ✨')").first();
+    await expect(aiCaptionBtn).toBeVisible();
+  });
 });
+

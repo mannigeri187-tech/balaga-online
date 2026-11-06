@@ -2819,7 +2819,11 @@ export type AiTaskType =
   | "review"
   | "discovery_explanation"
   | "community_pulse"
-  | "action_proposal";
+  | "action_proposal"
+  | "caption_assistant"
+  | "community_digest"
+  | "living_board_curator"
+  | "weekly_recap";
 
 export interface ConsequentialActionProposal {
   id: string;

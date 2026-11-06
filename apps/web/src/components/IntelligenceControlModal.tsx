@@ -38,7 +38,17 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
 
   const [activeTab, setActiveTab] = useState<"assistant" | "consent" | "history" | "metrics">("assistant");
   const [promptText, setPromptText] = useState("");
-  const [taskType, setTaskType] = useState<"summary" | "matching" | "assistance" | "discovery_explanation" | "action_proposal">("summary");
+  const [taskType, setTaskType] = useState<
+    | "summary"
+    | "matching"
+    | "assistance"
+    | "discovery_explanation"
+    | "action_proposal"
+    | "caption_assistant"
+    | "community_digest"
+    | "living_board_curator"
+    | "weekly_recap"
+  >("summary");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<AiResponsePayload | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -333,10 +343,13 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
                 {(
                   [
                     { id: "summary", label: "Summarize Activity" },
-                    { id: "matching", label: "Intelligent Matching" },
-                    { id: "discovery_explanation", label: "Explain Discovery" },
-                    { id: "action_proposal", label: "Agentic Task (With Approval)" },
-                    { id: "assistance", label: "General Assistance" },
+                    { id: "community_digest", label: "Community Digest 📢" },
+                    { id: "caption_assistant", label: "Caption Drafter ✍️" },
+                    { id: "living_board_curator", label: "Curate Living Board 📁" },
+                    { id: "weekly_recap", label: "Weekly Recap 🎉" },
+                    { id: "matching", label: "Intelligent Matching 🤝" },
+                    { id: "discovery_explanation", label: "Explain Discovery 💡" },
+                    { id: "action_proposal", label: "Agentic Task (With Approval) ⚡" },
                   ] as const
                 ).map((t) => (
                   <button
@@ -344,6 +357,10 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
                     onClick={() => {
                       setTaskType(t.id);
                       if (t.id === "summary") setPromptText(isSocial ? "Summarize my Bangalore badminton circle and film chat" : "Summarize my startup MVP traction & team applications");
+                      if (t.id === "community_digest") setPromptText("Synthesize recent circle activities, active discussions and meetups");
+                      if (t.id === "caption_assistant") setPromptText("Draft engaging, culturally respectful captions for a morning coffee and badminton photo");
+                      if (t.id === "living_board_curator") setPromptText("Organize my saved Bangalore cafes into a curated Living Board");
+                      if (t.id === "weekly_recap") setPromptText("Generate my weekly personal recap of moments and circle interactions");
                       if (t.id === "matching") setPromptText(isSocial ? "Find compatible friends with shared creative interests" : "Find co-founders with React and Three.js capabilities");
                       if (t.id === "discovery_explanation") setPromptText("Why was this content recommended on my feed?");
                       if (t.id === "action_proposal") setPromptText(isSocial ? "Organize my saved weekend cafe spots into a Living Board" : "Draft a warm collaborator invite to Sneha M.");

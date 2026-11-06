@@ -222,6 +222,52 @@ async function runAiIsolationTests() {
       "Explicit human approval transitions proposal to 'approved' state"
     );
 
+    // 10. Milestone 2 — Caption Assistant
+    const captionRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Sunday coffee walk in Indiranagar", taskType: "caption_assistant" },
+    });
+    assert(
+      captionRes.status === 200 && captionRes.body.content.includes("Balaga Social Caption Suggestions"),
+      "Milestone 2: Socializing Caption Assistant generates contextual captions and tags"
+    );
+
+    // 11. Milestone 2 — Community Digest
+    const digestRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Bangalore Indie Creators", taskType: "community_digest" },
+    });
+    assert(
+      digestRes.status === 200 && digestRes.body.content.includes("Community Digest"),
+      "Milestone 2: Socializing Community Digest synthesizes Circle discussions"
+    );
+
+    // 12. Milestone 2 — Living Board Curator (with Approval Gate)
+    const curatorRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Organize weekend roadtrips", taskType: "living_board_curator" },
+    });
+    assert(
+      curatorRes.status === 200 &&
+        curatorRes.body.requiresApproval === true &&
+        curatorRes.body.proposedAction?.actionType === "organize_board",
+      "Milestone 2: Actionable Living Board Curator proposes organization gated by approval"
+    );
+
+    // 13. Milestone 2 — Weekly Recap
+    const recapRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Summarize my week", taskType: "weekly_recap" },
+    });
+    assert(
+      recapRes.status === 200 && recapRes.body.content.includes("Your Weekly Social Recap"),
+      "Milestone 2: Socializing Weekly Recap summarizes connections and discussions"
+    );
+
     console.log(`\n=================================================================`);
     console.log(`   BALAGA INTELLIGENCE TEST RESULTS: ${passed} PASSED, ${failed} FAILED`);
     console.log(`=================================================================\n`);
