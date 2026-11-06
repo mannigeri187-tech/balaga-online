@@ -24,11 +24,15 @@ import {
   Rocket,
   Handshake,
   Check,
+  GitFork,
+  Laptop,
 } from "lucide-react";
 import {
   FounderPublicProfileModal,
   PublicFounderProfile,
 } from "./FounderPublicProfileModal";
+import { ForkableBlueprintsModal } from "./ForkableBlueprintsModal";
+import { CodeCastCanvasModal } from "./CodeCastCanvasModal";
 
 interface FoundersDashboardProps {
   onNavigateTab?: (tab: string) => void;
@@ -88,6 +92,8 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isCreateStartupOpen, setIsCreateStartupOpen] = useState(false);
   const [isPostOppOpen, setIsPostOppOpen] = useState(false);
   const [isSubmitProductOpen, setIsSubmitProductOpen] = useState(false);
+  const [isBlueprintsModalOpen, setIsBlueprintsModalOpen] = useState(false);
+  const [isCodeCastModalOpen, setIsCodeCastModalOpen] = useState(false);
   const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
   const [selectedProposalToCounter, setSelectedProposalToCounter] = useState<any | null>(null);
   const [counterCommercialTerms, setCounterCommercialTerms] = useState("20% Mutual Referral Share + Co-branding");
@@ -712,6 +718,24 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
                 icon={<Eye className="w-3.5 h-3.5" />}
               >
                 View Profile
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsBlueprintsModalOpen(true)}
+                icon={<GitFork className="w-3.5 h-3.5 text-emerald-400" />}
+                className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
+              >
+                Fork Blueprints ⚡
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCodeCastModalOpen(true)}
+                icon={<Laptop className="w-3.5 h-3.5 text-cyan-400" />}
+                className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+              >
+                Code Cast 🖥️
               </Button>
               <Button
                 variant="outline"
@@ -1358,6 +1382,20 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
               >
                 <span className="block font-semibold text-slate-200 group-hover:text-emerald-400">Open Inbox</span>
                 <span className="text-[10px] text-slate-500">Messaging</span>
+              </button>
+              <button
+                onClick={() => setIsBlueprintsModalOpen(true)}
+                className="p-2.5 bg-slate-950/70 border border-emerald-500/40 hover:border-emerald-500 hover:bg-slate-900 text-left rounded-xl transition-all group"
+              >
+                <span className="block font-semibold text-emerald-400 group-hover:text-emerald-300">⚡ Fork Blueprints</span>
+                <span className="text-[10px] text-slate-500">Decks & SAFE notes</span>
+              </button>
+              <button
+                onClick={() => setIsCodeCastModalOpen(true)}
+                className="p-2.5 bg-slate-950/70 border border-cyan-500/40 hover:border-cyan-500 hover:bg-slate-900 text-left rounded-xl transition-all group"
+              >
+                <span className="block font-semibold text-cyan-400 group-hover:text-cyan-300">🖥️ Live Code Cast</span>
+                <span className="text-[10px] text-slate-500">WebGL & CLI demo</span>
               </button>
             </div>
           </div>
@@ -2240,6 +2278,27 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
           }}
         />
       )}
+
+      {/* ========================================================
+          FORKABLE BUILDER BLUEPRINTS MODAL (F16)
+      ======================================================== */}
+      <ForkableBlueprintsModal
+        isOpen={isBlueprintsModalOpen}
+        onClose={() => setIsBlueprintsModalOpen(false)}
+        onForkToBuildSpace={(title) => {
+          showToast(`Forked "${title}" directly into your Build Space!`);
+          onNavigateTab?.("build-spaces");
+        }}
+      />
+
+      {/* ========================================================
+          INTERACTIVE PROJECT CANVASES & CODE CAST MODAL (F15)
+      ======================================================== */}
+      <CodeCastCanvasModal
+        isOpen={isCodeCastModalOpen}
+        onClose={() => setIsCodeCastModalOpen(false)}
+        projectName={startups[activeStartupIdx]?.name || "NovaTech Systems"}
+      />
     </div>
   );
 };
