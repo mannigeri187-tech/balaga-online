@@ -41,6 +41,8 @@ import { HackathonSquadModal } from "./HackathonSquadModal";
 import { SpeedMentorshipModal } from "./SpeedMentorshipModal";
 import { TechTalkMasterclassModal } from "./TechTalkMasterclassModal";
 import { CustomSubdomainModal } from "./CustomSubdomainModal";
+import { HonestDomainPulseModal } from "./HonestDomainPulseModal";
+import { ProofOfTractionModal } from "./ProofOfTractionModal";
 
 interface FoundersDashboardProps {
   onNavigateTab?: (tab: string) => void;
@@ -106,6 +108,8 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isSpeedMentorshipOpen, setIsSpeedMentorshipOpen] = useState(false);
   const [isTechTalkModalOpen, setIsTechTalkModalOpen] = useState(false);
   const [isSubdomainModalOpen, setIsSubdomainModalOpen] = useState(false);
+  const [isDomainPulseModalOpen, setIsDomainPulseModalOpen] = useState(false);
+  const [isProofOfTractionModalOpen, setIsProofOfTractionModalOpen] = useState(false);
   const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
   const [selectedProposalToCounter, setSelectedProposalToCounter] = useState<any | null>(null);
   const [counterCommercialTerms, setCounterCommercialTerms] = useState("20% Mutual Referral Share + Co-branding");
@@ -782,7 +786,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             </span>
           </div>
           <p className="text-xs text-slate-400">
-            Next-generation tools for Indian founders: blueprints, code cast, hackathon squads, 2-min mentorship, tech talk slides sync, and custom subdomains.
+            Next-generation tools for Indian founders: blueprints, code cast, hackathon squads, 2-min mentorship, tech talks sync, custom subdomains, domain pulse, and traction launches.
           </p>
         </div>
 
@@ -834,6 +838,22 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             className="bg-slate-900 border border-orange-500/40 text-orange-300 hover:bg-slate-800 text-xs"
           >
             Subdomains 🌐
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsDomainPulseModalOpen(true)}
+            icon={<Building2 className="w-3.5 h-3.5 text-rose-400" />}
+            className="bg-slate-900 border border-rose-500/40 text-rose-300 hover:bg-slate-800 text-xs"
+          >
+            Domain Pulse 🏢
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsProofOfTractionModalOpen(true)}
+            icon={<Rocket className="w-3.5 h-3.5 text-cyan-400" />}
+            className="bg-slate-900 border border-cyan-500/40 text-cyan-300 hover:bg-slate-800 text-xs"
+          >
+            Traction Launches 🚀
           </Button>
         </div>
       </div>
@@ -2424,6 +2444,22 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
       <CustomSubdomainModal
         isOpen={isSubdomainModalOpen}
         onClose={() => setIsSubdomainModalOpen(false)}
+      />
+
+      {/* ========================================================
+          HONEST DOMAIN PULSE (F21)
+      ======================================================== */}
+      <HonestDomainPulseModal
+        isOpen={isDomainPulseModalOpen}
+        onClose={() => setIsDomainPulseModalOpen(false)}
+      />
+
+      {/* ========================================================
+          PROOF-OF-TRACTION COMMUNITY LAUNCHES (F22)
+      ======================================================== */}
+      <ProofOfTractionModal
+        isOpen={isProofOfTractionModalOpen}
+        onClose={() => setIsProofOfTractionModalOpen(false)}
       />
     </div>
   );
