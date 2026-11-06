@@ -2823,11 +2823,26 @@ export type AiTaskType =
   | "caption_assistant"
   | "community_digest"
   | "living_board_curator"
-  | "weekly_recap";
+  | "weekly_recap"
+  | "faq_detection"
+  | "braintrust_assist"
+  | "moderation_assist"
+  | "moderation_appeal"
+  | "market_research"
+  | "task_breakdown"
+  | "bottleneck_warning"
+  | "deadline_alert"
+  | "inactivity_alert";
 
 export interface ConsequentialActionProposal {
   id: string;
-  actionType: "draft_message" | "create_announcement" | "organize_board" | "generate_tasklist";
+  actionType:
+    | "draft_message"
+    | "create_announcement"
+    | "organize_board"
+    | "generate_tasklist"
+    | "moderation_action"
+    | "schedule_sprint";
   title: string;
   description: string;
   payload: Record<string, any>;

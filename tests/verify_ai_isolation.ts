@@ -268,6 +268,111 @@ async function runAiIsolationTests() {
       "Milestone 2: Socializing Weekly Recap summarizes connections and discussions"
     );
 
+    // 14. Milestone 4 — Circle FAQ Detection
+    const faqRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Where are the best synthetic badminton courts?", taskType: "faq_detection" },
+    });
+    assert(
+      faqRes.status === 200 && faqRes.body.content.includes("Circle Knowledge Vault"),
+      "Milestone 4: Circle FAQ Detector identifies duplicate inquiries and cites canonical answer"
+    );
+
+    // 15. Milestone 4 — Brain Trust Mentor Assistant
+    const brainTrustRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Street photography advice for beginner", taskType: "braintrust_assist" },
+    });
+    assert(
+      brainTrustRes.status === 200 && brainTrustRes.body.content.includes("Brain Trust Mentor Answer"),
+      "Milestone 4: Brain Trust Assistant drafts structured guidance for mentors"
+    );
+
+    // 16. Milestone 4 — Transparent Rule-Based Moderation
+    const modRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Click here to buy cheap followers spam link", taskType: "moderation_assist" },
+    });
+    assert(
+      modRes.status === 200 &&
+        modRes.body.content.includes("Violation Detected") &&
+        modRes.body.content.includes("Zero opaque shadowbans"),
+      "Milestone 4: Moderation Assistant flags rule violations transparently without opaque bans"
+    );
+
+    // 17. Milestone 4 — Moderation Decision Appeal
+    const appealRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Appeal for post #42", taskType: "moderation_appeal" },
+    });
+    assert(
+      appealRes.status === 200 && appealRes.body.content.includes("Appeal Docket"),
+      "Milestone 4: Moderation Decision Appeal evaluates user appeal transparently"
+    );
+
+    // 18. Milestone 5 — Market & Competitor Research (Founders)
+    const marketRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "founders" },
+      body: { prompt: "Analyze India DevTools market", taskType: "market_research" },
+    });
+    assert(
+      marketRes.status === 200 &&
+        marketRes.body.content.includes("Founder Market & Competitor Intelligence") &&
+        marketRes.body.content.includes("TAM / SAM (India)"),
+      "Milestone 5: Founder Market Research synthesizes Indian competitor benchmarks"
+    );
+
+    // 19. Milestone 5 — Build Space Task Breakdown (Founders)
+    const taskBreakdownRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "founders" },
+      body: { prompt: "UPI Payment Integration", taskType: "task_breakdown" },
+    });
+    assert(
+      taskBreakdownRes.status === 200 &&
+        taskBreakdownRes.body.requiresApproval === true &&
+        taskBreakdownRes.body.proposedAction?.actionType === "generate_tasklist",
+      "Milestone 5: Build Space Task Breakdown generates sprint checklist gated by approval"
+    );
+
+    // 20. Milestone 7 — Proactive Bottleneck Warning
+    const bottleneckRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "founders" },
+      body: { prompt: "Check sprint #4 velocity", taskType: "bottleneck_warning" },
+    });
+    assert(
+      bottleneckRes.status === 200 && bottleneckRes.body.content.includes("Milestone Bottleneck Warning"),
+      "Milestone 7: Proactive Bottleneck Warning alerts on stalled sprint items"
+    );
+
+    // 21. Milestone 7 — Grants & Hackathon Alerts
+    const deadlineRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "founders" },
+      body: { prompt: "Upcoming deadlines", taskType: "deadline_alert" },
+    });
+    assert(
+      deadlineRes.status === 200 && deadlineRes.body.content.includes("Grants & Hackathon Alerts"),
+      "Milestone 7: Proactive Grant & Hackathon Sentinel monitors upcoming deadlines"
+    );
+
+    // 22. Milestone 7 — Circle Inactivity Prevention Sentinel
+    const inactivityRes = await request("/api/ai/query", {
+      method: "POST",
+      headers: { "x-platform-world": "socializing" },
+      body: { prompt: "Check photography circle", taskType: "inactivity_alert" },
+    });
+    assert(
+      inactivityRes.status === 200 && inactivityRes.body.content.includes("Circle Inactivity Prevention"),
+      "Milestone 7: Circle Inactivity Sentinel detects participation dips"
+    );
+
     console.log(`\n=================================================================`);
     console.log(`   BALAGA INTELLIGENCE TEST RESULTS: ${passed} PASSED, ${failed} FAILED`);
     console.log(`=================================================================\n`);

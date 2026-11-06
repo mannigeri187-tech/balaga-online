@@ -164,5 +164,29 @@ test.describe("Balaga.online Dual-World E2E Test Suite", () => {
     const aiCaptionBtn = page.locator("button:has-text('AI Caption ✨')").first();
     await expect(aiCaptionBtn).toBeVisible();
   });
+
+  test("8. Milestone 4, 5, 7: Dual-Realm Intelligence operates with realm-specific tasks", async ({ page }) => {
+    // Switch to Founders realm
+    const switcherBtn = page.locator("button[aria-haspopup='true']");
+    await switcherBtn.click();
+    await page.locator("button:has-text('Founders')").first().click();
+    await page.waitForTimeout(500);
+
+    // Click Founder AI button in innovations showcase bar
+    const founderAiBtn = page.locator("button:has-text('Founder AI ✨')").first();
+    await expect(founderAiBtn).toBeVisible();
+    await founderAiBtn.click();
+
+    // Verify Founders realm intelligence modal opens
+    await expect(page.locator("h2:has-text('Balaga Intelligence')")).toBeVisible();
+    await expect(page.locator("button:has-text('Traction Pulse 🚀')")).toBeVisible();
+    await expect(page.locator("button:has-text('Market & Competitor Intel 📊')")).toBeVisible();
+    await expect(page.locator("button:has-text('Build Space Task Breakdown 🔨')")).toBeVisible();
+
+    // Close modal
+    await page.locator("button:has-text('Close')").last().click();
+    await expect(page.locator("h2:has-text('Balaga Intelligence')")).not.toBeVisible();
+  });
 });
+
 

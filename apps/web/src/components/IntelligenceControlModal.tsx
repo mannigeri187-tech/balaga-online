@@ -22,6 +22,7 @@ import {
   AiMetricsSummary,
   AiResponsePayload,
   ConsequentialActionProposal,
+  AiTaskType,
 } from "@platform/shared-types";
 
 interface IntelligenceControlModalProps {
@@ -38,17 +39,7 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
 
   const [activeTab, setActiveTab] = useState<"assistant" | "consent" | "history" | "metrics">("assistant");
   const [promptText, setPromptText] = useState("");
-  const [taskType, setTaskType] = useState<
-    | "summary"
-    | "matching"
-    | "assistance"
-    | "discovery_explanation"
-    | "action_proposal"
-    | "caption_assistant"
-    | "community_digest"
-    | "living_board_curator"
-    | "weekly_recap"
-  >("summary");
+  const [taskType, setTaskType] = useState<AiTaskType>("summary");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<AiResponsePayload | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -340,30 +331,39 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
 
               {/* Task Selector */}
               <div className="flex gap-2 flex-wrap">
-                {(
-                  [
-                    { id: "summary", label: "Summarize Activity" },
-                    { id: "community_digest", label: "Community Digest 📢" },
-                    { id: "caption_assistant", label: "Caption Drafter ✍️" },
-                    { id: "living_board_curator", label: "Curate Living Board 📁" },
-                    { id: "weekly_recap", label: "Weekly Recap 🎉" },
-                    { id: "matching", label: "Intelligent Matching 🤝" },
-                    { id: "discovery_explanation", label: "Explain Discovery 💡" },
-                    { id: "action_proposal", label: "Agentic Task (With Approval) ⚡" },
-                  ] as const
+                {(isSocial
+                  ? [
+                      { id: "summary" as AiTaskType, label: "Summarize Activity 📋", prompt: "Summarize my Bangalore badminton circle and film chat" },
+                      { id: "caption_assistant" as AiTaskType, label: "Caption Drafter ✍️", prompt: "Draft engaging, culturally respectful captions for morning coffee and badminton" },
+                      { id: "community_digest" as AiTaskType, label: "Community Digest 📢", prompt: "Synthesize recent circle activities, active discussions and meetups" },
+                      { id: "faq_detection" as AiTaskType, label: "Circle FAQ Match ❓", prompt: "Where are the best synthetic badminton courts in Koramangala or HSR?" },
+                      { id: "braintrust_assist" as AiTaskType, label: "Brain Trust Mentor 🧠", prompt: "How should a beginner get started with street photography in Bangalore?" },
+                      { id: "moderation_assist" as AiTaskType, label: "Moderation Checker 🛡️", prompt: "Check this message for compliance with civil community standards" },
+                      { id: "moderation_appeal" as AiTaskType, label: "Appeal Decision ⚖️", prompt: "Review my flagged post about the photography meet for reinstatement" },
+                      { id: "living_board_curator" as AiTaskType, label: "Curate Living Board 📁", prompt: "Organize my saved Bangalore cafes into a curated Living Board" },
+                      { id: "weekly_recap" as AiTaskType, label: "Weekly Recap 🎉", prompt: "Generate my weekly personal recap of moments and circle interactions" },
+                      { id: "inactivity_alert" as AiTaskType, label: "Circle Sentinel ⚡", prompt: "Check Bangalore Film Circle for participation dips and discussion ideas" },
+                      { id: "matching" as AiTaskType, label: "Beyond Followers 🤝", prompt: "Find compatible friends with shared creative and badminton interests" },
+                      { id: "discovery_explanation" as AiTaskType, label: "Explain Discovery 💡", prompt: "Why was this content recommended on my feed?" },
+                      { id: "action_proposal" as AiTaskType, label: "Agentic Task (With Approval) ⚡", prompt: "Organize my saved weekend cafe spots into a Living Board" },
+                    ]
+                  : [
+                      { id: "summary" as AiTaskType, label: "Traction Pulse 🚀", prompt: "Summarize my startup MVP traction & team applications" },
+                      { id: "market_research" as AiTaskType, label: "Market & Competitor Intel 📊", prompt: "Analyze the Indian developer tools and real-time workspace market" },
+                      { id: "task_breakdown" as AiTaskType, label: "Build Space Task Breakdown 🔨", prompt: "Decompose UPI escrow integration into sprint user stories" },
+                      { id: "bottleneck_warning" as AiTaskType, label: "Sprint Bottleneck Warning ⚠️", prompt: "Check active sprint for stalled pull requests and unblocking needs" },
+                      { id: "deadline_alert" as AiTaskType, label: "Grants & Hackathons 🏆", prompt: "Alert me to upcoming Indian tech grants, SISFS intake, and hackathons" },
+                      { id: "matching" as AiTaskType, label: "Co-founder / ATS Match 🤝", prompt: "Find co-founders with React and Three.js capabilities" },
+                      { id: "review" as AiTaskType, label: "Pitch Deck Reviewer 📑", prompt: "Review our pre-seed pitch outline and unit economics narrative" },
+                      { id: "action_proposal" as AiTaskType, label: "Agentic Task (With Approval) ⚡", prompt: "Draft a warm collaborator invite to Sneha M." },
+                      { id: "discovery_explanation" as AiTaskType, label: "Explain Discovery 💡", prompt: "Why was this investor or opportunity recommended to my startup?" },
+                    ]
                 ).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => {
                       setTaskType(t.id);
-                      if (t.id === "summary") setPromptText(isSocial ? "Summarize my Bangalore badminton circle and film chat" : "Summarize my startup MVP traction & team applications");
-                      if (t.id === "community_digest") setPromptText("Synthesize recent circle activities, active discussions and meetups");
-                      if (t.id === "caption_assistant") setPromptText("Draft engaging, culturally respectful captions for a morning coffee and badminton photo");
-                      if (t.id === "living_board_curator") setPromptText("Organize my saved Bangalore cafes into a curated Living Board");
-                      if (t.id === "weekly_recap") setPromptText("Generate my weekly personal recap of moments and circle interactions");
-                      if (t.id === "matching") setPromptText(isSocial ? "Find compatible friends with shared creative interests" : "Find co-founders with React and Three.js capabilities");
-                      if (t.id === "discovery_explanation") setPromptText("Why was this content recommended on my feed?");
-                      if (t.id === "action_proposal") setPromptText(isSocial ? "Organize my saved weekend cafe spots into a Living Board" : "Draft a warm collaborator invite to Sneha M.");
+                      setPromptText(t.prompt);
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
                       taskType === t.id

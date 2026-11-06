@@ -45,6 +45,7 @@ import { CustomSubdomainModal } from "./CustomSubdomainModal";
 import { HonestDomainPulseModal } from "./HonestDomainPulseModal";
 import { ProofOfTractionModal } from "./ProofOfTractionModal";
 import { VerifiableKudosModal } from "./VerifiableKudosModal";
+import { IntelligenceControlModal } from "../../components/IntelligenceControlModal";
 
 interface FoundersDashboardProps {
   onNavigateTab?: (tab: string) => void;
@@ -113,6 +114,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isDomainPulseModalOpen, setIsDomainPulseModalOpen] = useState(false);
   const [isProofOfTractionModalOpen, setIsProofOfTractionModalOpen] = useState(false);
   const [isKudosModalOpen, setIsKudosModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
   const [selectedProposalToCounter, setSelectedProposalToCounter] = useState<any | null>(null);
   const [counterCommercialTerms, setCounterCommercialTerms] = useState("20% Mutual Referral Share + Co-branding");
@@ -865,6 +867,14 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
             className="bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-slate-800 text-xs"
           >
             Kudos Proof 🎖️
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => setIsAiModalOpen(true)}
+            icon={<Sparkles className="w-3.5 h-3.5 text-emerald-400" />}
+            className="bg-emerald-950/60 border border-emerald-400/50 text-emerald-300 hover:bg-emerald-900 text-xs font-semibold shadow-sm"
+          >
+            Founder AI ✨
           </Button>
         </div>
       </div>
@@ -2479,6 +2489,14 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
       <VerifiableKudosModal
         isOpen={isKudosModalOpen}
         onClose={() => setIsKudosModalOpen(false)}
+      />
+
+      {/* ========================================================
+          FOUNDER INTELLIGENCE MODAL (M1-M8)
+      ======================================================== */}
+      <IntelligenceControlModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
       />
     </div>
   );
