@@ -116,4 +116,24 @@ test.describe("Balaga.online Dual-World E2E Test Suite", () => {
     await page.keyboard.press("Escape");
     await expect(searchInput).not.toBeVisible();
   });
+
+  test("6. Balaga Intelligence: Floating AI pill opens Control Centre with Zero-Leakage Shield", async ({ page }) => {
+    // Click floating Balaga AI trigger pill in bottom-left
+    const aiPill = page.locator("button:has-text('Balaga AI')").first();
+    await expect(aiPill).toBeVisible();
+    await aiPill.click();
+
+    // Verify modal title & Zero-Leakage shield badge
+    await expect(page.locator("h2:has-text('Balaga Intelligence')")).toBeVisible();
+    await expect(page.locator("text=Zero-Leakage Shield Active")).toBeVisible();
+
+    // Click Privacy & Consent Controls tab
+    await page.locator("button:has-text('Privacy & Consent Controls')").click();
+    await expect(page.locator("text=Privacy-First Intelligence Agreement")).toBeVisible();
+
+    // Close modal
+    const closeBtn = page.locator("button:has-text('Close')").last();
+    await closeBtn.click();
+    await expect(page.locator("h2:has-text('Balaga Intelligence')")).not.toBeVisible();
+  });
 });

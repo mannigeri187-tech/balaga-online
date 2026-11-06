@@ -12,7 +12,8 @@ import {
   Headphones,
   Compass,
   ArrowRight,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 import { useWorld } from "../contexts/WorldContext";
 import { WORLDS } from "@platform/config";
@@ -64,6 +65,17 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       action: () => {
         switchWorld(WORLDS.SOCIALIZING);
         onNavigateTab("feed");
+        onClose();
+      }
+    },
+    {
+      id: "ai-control-centre",
+      title: "Balaga Intelligence Control Centre",
+      subtitle: "Privacy controls, AI consent, token audit logs & assistant playground",
+      realm: "global",
+      icon: Sparkles,
+      action: () => {
+        onNavigateTab("ai");
         onClose();
       }
     },

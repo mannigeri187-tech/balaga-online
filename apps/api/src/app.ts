@@ -5,6 +5,7 @@ import { healthRouter } from "./routes/health.routes.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { socialRouter } from "./routes/social.routes.js";
 import { founderRouter } from "./routes/founder.routes.js";
+import { aiRouter } from "./routes/ai.routes.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
 import { worldContextMiddleware } from "./middleware/world.middleware.js";
 import { createRateLimiter } from "./middleware/rate-limiter.middleware.js";
@@ -58,6 +59,9 @@ app.use("/api/auth", authLimiter, authRouter);
 // World-Scoped Routes (Enforces authentication THEN world boundary verification)
 app.use("/api/social", authMiddleware, worldContextMiddleware, socialRouter);
 app.use("/api/founders", authMiddleware, worldContextMiddleware, founderRouter);
+
+// Central Balaga Intelligence Gateway (Milestone 1)
+app.use("/api/ai", authMiddleware, worldContextMiddleware, aiRouter);
 
 export default app;
 

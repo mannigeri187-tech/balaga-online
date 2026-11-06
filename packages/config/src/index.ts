@@ -646,3 +646,32 @@ export const INDIA_COMPLIANCE = {
 
 
 
+
+
+/**
+ * Balaga Intelligence — Shared Infrastructure Constants
+ * Enforces Milestone 1 (Foundation): routing, safety, rate limits, and zero-leakage policies.
+ */
+export const BALAGA_AI_CONFIG = {
+  GATEWAY_VERSION: "v1.0.0",
+  DEFAULT_TIMEOUT_MS: 15000,
+  MAX_RETRIES: 2,
+  MAX_TOKENS_PER_REQUEST: 2048,
+  DEFAULT_RATE_LIMIT_PER_MINUTE: 30,
+  FREE_TIER_COST_PER_1K_INR: 0,
+  PAID_TIER_ESTIMATED_COST_PER_1K_INR: 0.05,
+  SUPPORTED_PROVIDERS: ["local_deterministic", "gemini", "openai", "anthropic"] as const,
+  WORLDS: {
+    SOCIALIZING: "socializing",
+    FOUNDERS: "founders",
+  },
+  SAFETY_POLICY: {
+    ALLOW_AUTONOMOUS_PAYMENTS: false,
+    ALLOW_AUTONOMOUS_HIRING: false,
+    ALLOW_AUTONOMOUS_DMS: false,
+    REQUIRE_APPROVAL_CONSEQUENTIAL: true,
+    ZERO_CROSS_WORLD_DATA_SHARING: true,
+  },
+} as const;
+
+export type AiProviderType = (typeof BALAGA_AI_CONFIG.SUPPORTED_PROVIDERS)[number];

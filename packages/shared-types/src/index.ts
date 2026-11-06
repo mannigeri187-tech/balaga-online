@@ -2797,3 +2797,86 @@ export interface NetworkingInsightsData {
 
 
 
+
+
+// --- 30. BALAGA INTELLIGENCE TYPES (MILESTONE 1: FOUNDATION) ---
+
+export interface AiConsentState {
+  accountId: string;
+  socialAiEnabled: boolean;
+  foundersAiEnabled: boolean;
+  allowSocialMemory: boolean;
+  allowFoundersMemory: boolean;
+  allowExperimentalModels: boolean;
+  updatedAt: string;
+}
+
+export type AiTaskType =
+  | "summary"
+  | "matching"
+  | "assistance"
+  | "translation"
+  | "review"
+  | "discovery_explanation"
+  | "community_pulse"
+  | "action_proposal";
+
+export interface ConsequentialActionProposal {
+  id: string;
+  actionType: "draft_message" | "create_announcement" | "organize_board" | "generate_tasklist";
+  title: string;
+  description: string;
+  payload: Record<string, any>;
+  status: "pending_approval" | "approved" | "rejected";
+  createdAt: string;
+  approvedAt?: string | null;
+}
+
+export interface AiRequestPayload {
+  prompt: string;
+  systemPrompt?: string;
+  taskType: AiTaskType;
+  contextData?: Record<string, any>;
+  temperature?: number;
+  maxTokens?: number;
+}
+
+export interface AiResponsePayload {
+  content: string;
+  structuredOutput?: Record<string, any> | null;
+  explanation?: string;
+  model: string;
+  provider: string;
+  tokensPrompt: number;
+  tokensCompletion: number;
+  costInr: number;
+  latencyMs: number;
+  requiresApproval?: boolean;
+  proposedAction?: ConsequentialActionProposal | null;
+}
+
+export interface AiActivityLog {
+  id: string;
+  accountId: string;
+  world: "socializing" | "founders";
+  taskType: AiTaskType;
+  modelUsed: string;
+  provider: string;
+  tokensPrompt: number;
+  tokensCompletion: number;
+  estimatedCostInr: number;
+  durationMs: number;
+  status: "success" | "error" | "refused_consent";
+  summary: string;
+  timestamp: string;
+}
+
+export interface AiMetricsSummary {
+  totalRequests: number;
+  totalTokens: number;
+  totalCostInr: number;
+  socialRequests: number;
+  foundersRequests: number;
+  zeroDataLeakageGuaranteed: boolean;
+  activeProvider: string;
+}

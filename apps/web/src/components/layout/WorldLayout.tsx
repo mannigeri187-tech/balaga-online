@@ -32,6 +32,7 @@ import { VerificationCentreView } from "../../features/founders/VerificationCent
 import { PremiumCentreView } from "../../features/founders/PremiumCentreView";
 import { CreateMediaModal } from "../../features/socializing/CreateMediaModal";
 import { CommandPaletteModal } from "../CommandPaletteModal";
+import { IntelligenceControlModal } from "../IntelligenceControlModal";
 
 export const WorldLayout: React.FC = () => {
   const { activeWorld, isLoading } = useWorld();
@@ -39,6 +40,7 @@ export const WorldLayout: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<string>("feed");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isIntelligenceModalOpen, setIsIntelligenceModalOpen] = useState(false);
 
   // Global Ctrl+K / Cmd+K listener
   React.useEffect(() => {
@@ -54,8 +56,13 @@ export const WorldLayout: React.FC = () => {
 
   // Keep tab aligned when user switches worlds
   React.useEffect(() => {
+    if (currentTab === "ai") {
+      setIsIntelligenceModalOpen(true);
+      setCurrentTab(isSocial ? "feed" : "dashboard");
+      return;
+    }
     setCurrentTab(isSocial ? "feed" : "dashboard");
-  }, [activeWorld, isSocial]);
+  }, [activeWorld, isSocial, currentTab]);
 
   const renderSocialContent = () => {
     switch (currentTab) {
@@ -211,14 +218,28 @@ export const WorldLayout: React.FC = () => {
         </nav>
       )}
 
-      {/* Floating Ctrl+K Trigger Pill */}
-      <button
-        onClick={() => setIsCommandPaletteOpen(true)}
-        className="fixed bottom-20 sm:bottom-6 left-6 z-40 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 shadow-xl backdrop-blur-md text-xs font-mono text-slate-300 flex items-center gap-2 group transition"
-      >
-        <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
-        <span>⌘K Command Menu</span>
-      </button>
+      {/* Floating Triggers: Intelligence & Command Menu */}
+      <div className="fixed bottom-20 sm:bottom-6 left-6 z-40 flex items-center gap-2">
+        <button
+          onClick={() => setIsIntelligenceModalOpen(true)}
+          className={`px-3 py-1.5 rounded-full border shadow-xl backdrop-blur-md text-xs font-semibold flex items-center gap-2 group transition ${
+            isSocial
+              ? "bg-violet-950/90 border-violet-500/40 text-violet-200 hover:bg-violet-900"
+              : "bg-emerald-950/90 border-emerald-500/40 text-emerald-200 hover:bg-emerald-900"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-amber-400 group-hover:animate-ping" />
+          <span>✨ Balaga AI</span>
+        </button>
+
+        <button
+          onClick={() => setIsCommandPaletteOpen(true)}
+          className="px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-slate-500 shadow-xl backdrop-blur-md text-xs font-mono text-slate-300 flex items-center gap-2 group transition"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:animate-ping" />
+          <span>⌘K Command Menu</span>
+        </button>
+      </div>
 
       {/* Create Post / Reel Modal */}
       {isSocial && (
@@ -233,6 +254,12 @@ export const WorldLayout: React.FC = () => {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         onNavigateTab={setCurrentTab}
+      />
+
+      {/* Balaga Intelligence Control Centre (Milestone 1) */}
+      <IntelligenceControlModal
+        isOpen={isIntelligenceModalOpen}
+        onClose={() => setIsIntelligenceModalOpen(false)}
       />
     </div>
   );
