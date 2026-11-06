@@ -39,10 +39,12 @@ import {
   BookOpen,
   Moon,
   ShieldCheck,
+  Globe,
 } from "lucide-react";
 import { getBuilderCardByUsername } from "./socialAccountsData";
 import { MonkModeModal } from "./MonkModeModal";
 import { TrustFingerprintModal } from "./TrustFingerprintModal";
+import { UniversalPortalModal } from "./UniversalPortalModal";
 
 interface SocialProfileViewProps {
   profile?: SocialProfile | null;
@@ -75,6 +77,7 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isMonkModalOpen, setIsMonkModalOpen] = useState(false);
   const [isTrustModalOpen, setIsTrustModalOpen] = useState(false);
+  const [isPortalModalOpen, setIsPortalModalOpen] = useState(false);
   const [isMonkModeActive, setIsMonkModeActive] = useState<boolean>(() => {
     return localStorage.getItem("balaga_monk_mode") === "true";
   });
@@ -691,6 +694,15 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                 >
                   <Moon className="w-3.5 h-3.5 text-indigo-400" />
                   <span>{isMonkModeActive ? "Monk 🧘" : "Monk Mode"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPortalModalOpen(true)}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border flex items-center gap-1.5 transition-colors bg-slate-800 text-slate-300 border-slate-700 hover:text-white"
+                  title="Universal Balaga Portal (IRL QR & Public Hub)"
+                >
+                  <Globe className="w-3.5 h-3.5 text-violet-400" />
+                  <span>Portal 🌐</span>
                 </button>
                 <button
                   onClick={() => setIsSettingsMenuOpen(true)}
@@ -2288,6 +2300,17 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         onClose={() => setIsTrustModalOpen(false)}
         username={profile.username}
         displayName={profile.displayName}
+      />
+
+      {/* UNIVERSAL BALAGA PORTAL (S20) */}
+      <UniversalPortalModal
+        isOpen={isPortalModalOpen}
+        onClose={() => setIsPortalModalOpen(false)}
+        username={profile.username}
+        name={profile.displayName}
+        avatarUrl={profile.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"}
+        bio={profile.bio || "Digital craftsman & builder on Balaga."}
+        isBuilder={!!builderCard}
       />
     </div>
   );

@@ -17,10 +17,12 @@ import {
   Receipt,
   Radio,
   Package,
+  GraduationCap,
 } from "lucide-react";
 import { CircleSplitModal } from "./CircleSplitModal";
 import { RapidHuddleModal } from "./RapidHuddleModal";
 import { CircleGearSwapModal } from "./CircleGearSwapModal";
+import { CampusHubModal } from "./CampusHubModal";
 
 export const SocialCommunities: React.FC = () => {
   const { socialProfile } = useWorld();
@@ -32,6 +34,7 @@ export const SocialCommunities: React.FC = () => {
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
   const [isHuddleOpen, setIsHuddleOpen] = useState(false);
   const [isGearSwapOpen, setIsGearSwapOpen] = useState(false);
+  const [isCampusHubOpen, setIsCampusHubOpen] = useState(false);
 
   // Communities State
   const [communities, setCommunities] = useState<SocialCommunity[]>([
@@ -313,7 +316,16 @@ export const SocialCommunities: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<GraduationCap className="w-4 h-4 text-indigo-400" />}
+            onClick={() => setIsCampusHubOpen(true)}
+            className="shrink-0 bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-200"
+          >
+            Campus Hub 🎓
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -770,6 +782,12 @@ export const SocialCommunities: React.FC = () => {
         isOpen={isGearSwapOpen}
         onClose={() => setIsGearSwapOpen(false)}
         circleName={selectedCommunity?.name || "Balaga Circles"}
+      />
+
+      {/* CAMPUS NETWORK & SOCIETY HUB (S13) */}
+      <CampusHubModal
+        isOpen={isCampusHubOpen}
+        onClose={() => setIsCampusHubOpen(false)}
       />
     </div>
   );
