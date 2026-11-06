@@ -38,9 +38,11 @@ import {
   IndianRupee,
   BookOpen,
   Moon,
+  ShieldCheck,
 } from "lucide-react";
 import { getBuilderCardByUsername } from "./socialAccountsData";
 import { MonkModeModal } from "./MonkModeModal";
+import { TrustFingerprintModal } from "./TrustFingerprintModal";
 
 interface SocialProfileViewProps {
   profile?: SocialProfile | null;
@@ -72,6 +74,7 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
   const [isLikedModalOpen, setIsLikedModalOpen] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isMonkModalOpen, setIsMonkModalOpen] = useState(false);
+  const [isTrustModalOpen, setIsTrustModalOpen] = useState(false);
   const [isMonkModeActive, setIsMonkModeActive] = useState<boolean>(() => {
     return localStorage.getItem("balaga_monk_mode") === "true";
   });
@@ -628,6 +631,15 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
             <h1 className="text-xl md:text-2xl font-normal text-slate-100 flex items-center justify-center sm:justify-start gap-2">
               <span>{profile.username}</span>
+              <button
+                type="button"
+                onClick={() => setIsTrustModalOpen(true)}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors cursor-pointer"
+                title="View Balaga Trust Fingerprint (Unpurchasable Peer Trust)"
+              >
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span>98% Trust</span>
+              </button>
               {isPrivateAccount && (
                 <span title="Private Account" className="inline-flex items-center text-slate-300 bg-slate-800/90 px-2 py-0.5 rounded-full text-[11px] gap-1 border border-slate-700/80">
                   <Lock className="w-3 h-3 text-slate-300" />
@@ -2268,6 +2280,14 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         onClose={() => setIsMonkModalOpen(false)}
         isMonkModeActive={isMonkModeActive}
         onToggleMonkMode={handleToggleMonkMode}
+      />
+
+      {/* BALAGA TRUST FINGERPRINT (S18) */}
+      <TrustFingerprintModal
+        isOpen={isTrustModalOpen}
+        onClose={() => setIsTrustModalOpen(false)}
+        username={profile.username}
+        displayName={profile.displayName}
       />
     </div>
   );

@@ -16,9 +16,11 @@ import {
   ArrowLeft,
   Receipt,
   Radio,
+  Package,
 } from "lucide-react";
 import { CircleSplitModal } from "./CircleSplitModal";
 import { RapidHuddleModal } from "./RapidHuddleModal";
+import { CircleGearSwapModal } from "./CircleGearSwapModal";
 
 export const SocialCommunities: React.FC = () => {
   const { socialProfile } = useWorld();
@@ -29,6 +31,7 @@ export const SocialCommunities: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
   const [isHuddleOpen, setIsHuddleOpen] = useState(false);
+  const [isGearSwapOpen, setIsGearSwapOpen] = useState(false);
 
   // Communities State
   const [communities, setCommunities] = useState<SocialCommunity[]>([
@@ -311,6 +314,15 @@ export const SocialCommunities: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Package className="w-4 h-4 text-teal-400" />}
+            onClick={() => setIsGearSwapOpen(true)}
+            className="shrink-0 bg-slate-900 border-slate-700 hover:bg-slate-800 text-slate-200"
+          >
+            Gear Swap 📦
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -750,6 +762,13 @@ export const SocialCommunities: React.FC = () => {
       <RapidHuddleModal
         isOpen={isHuddleOpen}
         onClose={() => setIsHuddleOpen(false)}
+        circleName={selectedCommunity?.name || "Balaga Circles"}
+      />
+
+      {/* CIRCLE GEAR SWAP MODAL (S19) */}
+      <CircleGearSwapModal
+        isOpen={isGearSwapOpen}
+        onClose={() => setIsGearSwapOpen(false)}
         circleName={selectedCommunity?.name || "Balaga Circles"}
       />
     </div>
