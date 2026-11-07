@@ -183,9 +183,10 @@ async function runFeature6Tests() {
     assert(resBadCreate.status === 400, "Creation fails 400 when mandatory fields missing");
 
     // Create valid startup as Nikhil
+    const testSlug = `aeropulse-tech-${Date.now()}`;
     const validStartupPayload = {
       name: "AeroPulse Technologies",
-      slug: "aeropulse-tech",
+      slug: testSlug,
       oneLiner: "Autonomous drone logistics for rural healthcare delivery across India",
       industry: "Drone Tech / Health Logistics",
       stage: "mvp" as const,
@@ -221,7 +222,7 @@ async function runFeature6Tests() {
       body: {
         ...validStartupPayload,
         name: "Duplicate Aeropulse",
-        slug: "aeropulse-tech", // duplicate slug!
+        slug: testSlug, // duplicate slug!
       },
     });
     assert(resSlugCollision.status === 400, "Creation with duplicate slug returns 400 Bad Request");

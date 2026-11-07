@@ -2,6 +2,20 @@ import { Router } from "express";
 import { enforceWorld } from "../middleware/world.middleware.js";
 import { WORLDS } from "@platform/config";
 import {
+  socialPostsRepository,
+  socialCommentsRepository,
+  socialReactionsRepository,
+  socialStoriesRepository,
+  socialReelsRepository,
+  socialCommunitiesRepository,
+  socialEventsRepository,
+  socialConversationsRepository,
+  socialMessagesRepository,
+  socialProfilesRepository,
+  socialConnectionsRepository,
+  socialReportsRepository,
+} from "../repositories/index.js";
+import {
   socialProfilesStore,
   socialPostsStore,
   socialReactionsStore,
@@ -192,7 +206,7 @@ socialRouter.get("/feed", (req, res) => {
   });
 });
 
-socialRouter.post("/posts", (req, res) => {
+socialRouter.post("/posts", async (req, res) => {
   const profileId = req.worldContext!.profileId;
   const profile = Array.from(socialProfilesStore.values()).find((p) => p.id === profileId);
 
@@ -230,11 +244,16 @@ socialRouter.post("/posts", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  socialPostsStore.set(newPost.id, newPost);
+  try {
+    await socialPostsRepository.create(newPost);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist social post", details: err.message });
+  }
+
   res.status(201).json({ message: "Post published successfully", post: newPost });
 });
 
-socialRouter.delete("/posts/:id", (req, res) => {
+socialRouter.delete("/posts/:id", async (req, res) => {
   const postId = req.params.id;
   const profileId = req.worldContext!.profileId;
 
@@ -247,7 +266,12 @@ socialRouter.delete("/posts/:id", (req, res) => {
     return res.status(403).json({ error: "Only the author can delete this post" });
   }
 
-  socialPostsStore.delete(postId);
+  try {
+    await socialPostsRepository.delete(postId);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to delete social post", details: err.message });
+  }
+
   res.json({ message: "Post deleted successfully" });
 });
 
@@ -312,7 +336,7 @@ socialRouter.get("/posts/:id/comments", (req, res) => {
   res.json({ comments });
 });
 
-socialRouter.post("/posts/:id/comments", (req, res) => {
+socialRouter.post("/posts/:id/comments", async (req, res) => {
   const postId = req.params.id;
   const profileId = req.worldContext!.profileId;
   const profile = Array.from(socialProfilesStore.values()).find((p) => p.id === profileId);
@@ -341,8 +365,13 @@ socialRouter.post("/posts/:id/comments", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  socialCommentsStore.set(newComment.id, newComment);
-  post.commentsCount += 1;
+  try {
+    await socialCommentsRepository.create(newComment);
+    post.commentsCount += 1;
+    await socialPostsRepository.update(postId, { commentsCount: post.commentsCount });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist comment", details: err.message });
+  }
 
   res.status(201).json({ message: "Comment added successfully", comment: newComment });
 });
@@ -620,7 +649,7 @@ socialRouter.get("/stories", (req, res) => {
   res.json({ stories: activeStories });
 });
 
-socialRouter.post("/stories", (req, res) => {
+socialRouter.post("/stories", async (req, res) => {
   const profileId = req.worldContext!.profileId;
   const profile = Array.from(socialProfilesStore.values()).find((p) => p.id === profileId);
 
@@ -643,7 +672,12 @@ socialRouter.post("/stories", (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  socialStoriesStore.set(newStory.id, newStory);
+  try {
+    await socialStoriesRepository.create(newStory);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist story", details: err.message });
+  }
+
   res.status(201).json({ message: "Story published (expires in 24 hours)", story: newStory });
 });
 
@@ -794,7 +828,7 @@ socialRouter.get("/reels", (req, res) => {
   res.json({ reels });
 });
 
-socialRouter.post("/reels", (req, res) => {
+socialRouter.post("/reels", async (req, res) => {
   const profileId = req.worldContext!.profileId;
   const profile = Array.from(socialProfilesStore.values()).find((p) => p.id === profileId);
 
@@ -822,7 +856,12 @@ socialRouter.post("/reels", (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  socialReelsStore.set(newReel.id, newReel);
+  try {
+    await socialReelsRepository.create(newReel);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist reel", details: err.message });
+  }
+
   res.status(201).json({ message: "Reel published successfully", reel: newReel });
 });
 
@@ -963,7 +1002,7 @@ socialRouter.get("/communities/:slug", (req, res) => {
   });
 });
 
-socialRouter.post("/communities", (req, res) => {
+socialRouter.post("/communities", async (req, res) => {
   const profileId = req.worldContext!.profileId;
   const profile = Array.from(socialProfilesStore.values()).find((p) => p.id === profileId);
 
@@ -996,7 +1035,11 @@ socialRouter.post("/communities", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  socialCommunitiesStore.set(newComm.id, newComm);
+  try {
+    await socialCommunitiesRepository.create(newComm);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist community", details: err.message });
+  }
 
   // Creator is automatically owner
   socialCommunityMembersStore.set(`${newComm.id}:${profileId}`, {
@@ -1126,7 +1169,7 @@ socialRouter.get("/events", (req, res) => {
   res.json({ events });
 });
 
-socialRouter.post("/events", (req, res) => {
+socialRouter.post("/events", async (req, res) => {
   const profileId = req.worldContext!.profileId;
   const profile = Array.from(socialProfilesStore.values()).find((p) => p.id === profileId);
 
@@ -1172,7 +1215,11 @@ socialRouter.post("/events", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  socialEventsStore.set(newEvent.id, newEvent);
+  try {
+    await socialEventsRepository.create(newEvent);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist event", details: err.message });
+  }
 
   // Organizer automatically marked as Going
   socialEventRsvpsStore.set(`${newEvent.id}:${profileId}`, {
@@ -1267,7 +1314,7 @@ socialRouter.get("/inbox/conversations", (req, res) => {
   res.json({ conversations: convs });
 });
 
-socialRouter.post("/inbox/conversations", (req, res) => {
+socialRouter.post("/inbox/conversations", async (req, res) => {
   const senderId = req.worldContext!.profileId;
   const result = startConversationSchema.safeParse(req.body);
   if (!result.success) {
@@ -1329,7 +1376,11 @@ socialRouter.post("/inbox/conversations", (req, res) => {
       ],
       createdAt: new Date().toISOString(),
     };
-    socialConversationsStore.set(conv.id, conv);
+    try {
+      await socialConversationsRepository.create(conv);
+    } catch (err: any) {
+      return res.status(500).json({ error: "Failed to persist conversation", details: err.message });
+    }
   }
 
   const msg: SocialMessage = {
@@ -1341,9 +1392,14 @@ socialRouter.post("/inbox/conversations", (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  socialMessagesStore.set(msg.id, msg);
-  conv.lastMessage = msg.content;
-  conv.lastMessageAt = new Date().toISOString();
+  try {
+    await socialMessagesRepository.create(msg);
+    conv.lastMessage = msg.content;
+    conv.lastMessageAt = new Date().toISOString();
+    await socialConversationsRepository.update(conv.id, { lastMessage: conv.lastMessage, lastMessageAt: conv.lastMessageAt });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist message", details: err.message });
+  }
 
   res.status(201).json({ message: "Conversation initialized", conversation: conv, messageItem: msg });
 });
@@ -1372,7 +1428,7 @@ socialRouter.get("/inbox/conversations/:id/messages", (req, res) => {
 });
 
 // Send message to conversation
-socialRouter.post("/inbox/conversations/:id/messages", (req, res) => {
+socialRouter.post("/inbox/conversations/:id/messages", async (req, res) => {
   const convId = req.params.id;
   const senderId = req.worldContext!.profileId;
   const sender = Array.from(socialProfilesStore.values()).find((p) => p.id === senderId);
@@ -1405,9 +1461,14 @@ socialRouter.post("/inbox/conversations/:id/messages", (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  socialMessagesStore.set(msg.id, msg);
-  conv.lastMessage = content;
-  conv.lastMessageAt = new Date().toISOString();
+  try {
+    await socialMessagesRepository.create(msg);
+    conv.lastMessage = content;
+    conv.lastMessageAt = new Date().toISOString();
+    await socialConversationsRepository.update(conv.id, { lastMessage: conv.lastMessage, lastMessageAt: conv.lastMessageAt });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist message", details: err.message });
+  }
 
   res.status(201).json({ message: "Message sent", messageItem: msg });
 });

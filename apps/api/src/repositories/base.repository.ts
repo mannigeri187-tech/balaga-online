@@ -34,9 +34,29 @@ export class BasePersistentRepository<T extends Record<string, any>> implements 
     return this.idKey;
   }
 
+  getStore(): Map<string, T> | PersistentMap<string, T> {
+    return this.store;
+  }
+
   isRemoteAuthoritative(): boolean {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     return Boolean(key && key.trim().length > 20);
+  }
+
+  async hydrateAllFromRemote(): Promise<number> {
+    if (!this.isRemoteAuthoritative()) {
+      return this.store.size;
+    }
+    const { data, error } = await supabase.from(this.tableName).select("*");
+    if (error) {
+      console.warn(`[Repository ${this.tableName}] Remote hydration failed: ${error.message} (${error.code || "DB_ERR"})`);
+      return this.store.size;
+    }
+    const remoteItems = (data || []) as T[];
+    for (const item of remoteItems) {
+      this.store.set(String(item[this.idKey]), item);
+    }
+    return remoteItems.length;
   }
 
   async findById(id: string): Promise<T | null> {

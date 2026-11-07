@@ -2,6 +2,17 @@ import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { enforceWorld } from "../middleware/world.middleware.js";
 import {
+  startupsRepository,
+  founderPostsRepository,
+  opportunitiesRepository,
+  jobsRepository,
+  productsRepository,
+  buildSpacesRepository,
+  mentorsRepository,
+  investorsRepository,
+  referralListingsRepository,
+} from "../repositories/index.js";
+import {
   WORLDS,
   BUILD_SPACES_REGULATORY_DISCLAIMER,
   FOUNDERS_INBOX_DISCLAIMER,
@@ -4182,7 +4193,7 @@ founderRouter.delete("/products/collections/:id/items/:productId", (req: Request
 });
 
 // 14. POST /api/founders/products (and /api/founders/launchpad/products) — Submit Product (Option A)
-const handleSubmitProduct = (req: Request, res: Response) => {
+const handleSubmitProduct = async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(401).json({ error: "Forbidden: No founder profile found" });
@@ -4272,7 +4283,11 @@ const handleSubmitProduct = (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  launchpadProductsStore.set(newProduct.id, newProduct);
+  try {
+    await productsRepository.create(newProduct);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist product to database", details: err.message });
+  }
 
   if (!isRestricted && newProduct.isPublished) {
     launchpadUpvotesStore.add(`${currentFounder.id}:${newProduct.id}`);
@@ -5297,7 +5312,7 @@ founderRouter.get("/feed/sidebar", (req: Request, res: Response) => {
 // 14. CREATE STARTUP - Handled comprehensively by Feature 6 Startup Hub (Endpoint 96)
 
 // 15. POST OPPORTUNITY / JOB LISTING
-founderRouter.post("/opportunities", (req: Request, res: Response) => {
+founderRouter.post("/opportunities", async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(403).json({ error: "Forbidden: No founder profile found" });
@@ -5347,7 +5362,11 @@ founderRouter.post("/opportunities", (req: Request, res: Response) => {
     createdAt: new Date().toISOString(),
   };
 
-  opportunitiesStore.set(newOppId, newOpp as any);
+  try {
+    await opportunitiesRepository.create(newOpp as any);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist opportunity", details: err.message });
+  }
   res.status(201).json({
     message: "Opportunity posted successfully",
     opportunity: newOpp,
@@ -5408,7 +5427,7 @@ founderRouter.post("/attention/:id/:action", (req: Request, res: Response) => {
 });
 
 // 17. CREATE FOUNDER FEED POST
-founderRouter.post("/feed", (req: Request, res: Response) => {
+founderRouter.post("/feed", async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(403).json({ error: "Forbidden: No founder profile found" });
@@ -5478,7 +5497,11 @@ founderRouter.post("/feed", (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  founderPostsStore.set(newPostId, newPost);
+  try {
+    await founderPostsRepository.create(newPost);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist founder post", details: err.message });
+  }
 
   res.status(201).json({
     message: "Post published successfully",
@@ -7269,7 +7292,7 @@ founderRouter.get("/opportunities/marketplace/:id", (req: Request, res: Response
 });
 
 // 54. POST AN OPPORTUNITY (Personal or Authorized Startup Opportunity)
-founderRouter.post("/opportunities/marketplace", (req: Request, res: Response) => {
+founderRouter.post("/opportunities/marketplace", async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(403).json({ error: "Forbidden: No founder profile found" });
@@ -7361,7 +7384,11 @@ founderRouter.post("/opportunities/marketplace", (req: Request, res: Response) =
     updatedAt: new Date().toISOString(),
   };
 
-  opportunitiesStore.set(newOpp.id, newOpp);
+  try {
+    await opportunitiesRepository.create(newOpp);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist opportunity", details: err.message });
+  }
 
   res.status(201).json({
     message: "Opportunity published successfully",
@@ -8212,7 +8239,7 @@ founderRouter.get("/hiring/jobs/:id", (req: Request, res: Response) => {
 });
 
 // 72. POST /api/founders/hiring/jobs — Create Official Startup Job
-founderRouter.post("/hiring/jobs", (req: Request, res: Response) => {
+founderRouter.post("/hiring/jobs", async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(401).json({ error: "Founder profile required" });
@@ -8254,7 +8281,11 @@ founderRouter.post("/hiring/jobs", (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  startupJobsStore.set(newJobId, newJob);
+  try {
+    await jobsRepository.create(newJob);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist job listing to database", details: err.message });
+  }
 
   // Audit log
   hiringAuditLogsStore.set(`audit-${Date.now()}`, {
@@ -9554,7 +9585,7 @@ founderRouter.get("/startups/my-startups", (req: Request, res: Response) => {
 });
 
 // 96. POST /api/founders/startups — Create Startup Wizard
-founderRouter.post("/startups", (req: Request, res: Response) => {
+founderRouter.post("/startups", async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(401).json({ error: "Founder profile required" });
@@ -9616,7 +9647,11 @@ founderRouter.post("/startups", (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  startupsStore.set(newStartupId, newStartup);
+  try {
+    await startupsRepository.create(newStartup);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist startup to database", details: err.message });
+  }
 
   // Creator automatically becomes Owner with full permissions
   const creatorMembership: StartupMember = {
@@ -9780,7 +9815,7 @@ founderRouter.get("/startups/:slugOrId", (req: Request, res: Response) => {
 });
 
 // 98. PUT /api/founders/startups/:id — Edit Startup Profile
-founderRouter.put("/startups/:id", (req: Request, res: Response) => {
+founderRouter.put("/startups/:id", async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(401).json({ error: "Founder profile required" });
@@ -9812,7 +9847,11 @@ founderRouter.put("/startups/:id", (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  startupsStore.set(id, updatedStartup);
+  try {
+    await startupsRepository.update(id, updatedStartup);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist updated startup to database", details: err.message });
+  }
 
   // Audit activity log
   startupActivityLogsStore.set(`act-${Date.now()}`, {
@@ -14158,7 +14197,7 @@ founderRouter.get("/build-spaces/projects/discover", (req: Request, res: Respons
 });
 
 // 4. POST /api/founders/build-spaces/projects (and /api/founders/build-spaces) — Create Project Build Space
-const handleCreateBuildSpace = (req: Request, res: Response) => {
+const handleCreateBuildSpace = async (req: Request, res: Response) => {
   const currentFounder = getAuthFounder(req);
   if (!currentFounder) {
     return res.status(401).json({ error: "Founder profile required" });
@@ -14205,7 +14244,11 @@ const handleCreateBuildSpace = (req: Request, res: Response) => {
     updatedAt: new Date().toISOString(),
   };
 
-  buildSpacesStore.set(newSpace.id, newSpace);
+  try {
+    await buildSpacesRepository.create(newSpace);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist build space to database", details: err.message });
+  }
 
   // Add creator as owner in members store
   const ownerMember: BuildSpaceMember = {
