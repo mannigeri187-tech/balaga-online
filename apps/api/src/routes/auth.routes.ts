@@ -2,6 +2,11 @@ import { Router } from "express";
 import { registerSchema, loginSchema, socialProfileSchema, founderProfileSchema } from "@platform/validation";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import {
+  accountsRepository,
+  socialProfilesRepository,
+  founderProfilesRepository,
+} from "../repositories/index.js";
+import {
   accountsStore,
   socialProfilesStore,
   founderProfilesStore,
@@ -11,7 +16,7 @@ import {
 export const authRouter = Router();
 
 // REGISTER (Requires 18+ attestation)
-authRouter.post("/register", (req, res) => {
+authRouter.post("/register", async (req, res) => {
   const result = registerSchema.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ error: "Validation failed", details: result.error.errors });
@@ -30,7 +35,11 @@ authRouter.post("/register", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  accountsStore.set(newId, account);
+  try {
+    await accountsRepository.create(account);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist account", details: err.message });
+  }
 
   return res.status(201).json({
     message: "Account registered successfully",
@@ -70,7 +79,7 @@ authRouter.get("/me", authMiddleware, (req, res) => {
 });
 
 // CREATE / UPDATE SOCIAL PROFILE
-authRouter.post("/profiles/social", authMiddleware, (req, res) => {
+authRouter.post("/profiles/social", authMiddleware, async (req, res) => {
   const result = socialProfileSchema.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ error: "Validation failed", details: result.error.errors });
@@ -86,12 +95,17 @@ authRouter.post("/profiles/social", authMiddleware, (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  socialProfilesStore.set(accountId, profile);
+  try {
+    await socialProfilesRepository.create(profile as any);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist social profile", details: err.message });
+  }
+
   return res.status(201).json({ message: "Social profile saved", profile });
 });
 
 // CREATE / UPDATE FOUNDER PROFILE
-authRouter.post("/profiles/founder", authMiddleware, (req, res) => {
+authRouter.post("/profiles/founder", authMiddleware, async (req, res) => {
   const result = founderProfileSchema.safeParse(req.body);
   if (!result.success) {
     return res.status(400).json({ error: "Validation failed", details: result.error.errors });
@@ -107,6 +121,11 @@ authRouter.post("/profiles/founder", authMiddleware, (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  founderProfilesStore.set(accountId, profile);
+  try {
+    await founderProfilesRepository.create(profile as any);
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to persist founder profile", details: err.message });
+  }
+
   return res.status(201).json({ message: "Founder profile saved", profile });
 });
