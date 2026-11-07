@@ -41,6 +41,7 @@ Always open to connecting with passionate engineers, angel investors, and potent
 
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [tempAbout, setTempAbout] = useState(aboutText);
+  const [isOpenToOpportunities, setIsOpenToOpportunities] = useState(true);
 
   const handleSaveAbout = () => {
     setAboutText(tempAbout);
@@ -161,10 +162,30 @@ Always open to connecting with passionate engineers, angel investors, and potent
 
           {/* Action Buttons Row */}
           <div className="flex flex-wrap items-center gap-2.5 pt-5">
-            <button className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-semibold shadow-md shadow-emerald-950/50 transition-colors">
-              Open to Opportunities
+            <button
+              type="button"
+              onClick={() => {
+                const next = !isOpenToOpportunities;
+                setIsOpenToOpportunities(next);
+                setToastMessage(next ? "Status updated: Open to Opportunities" : "Status updated: Focused on Current Venture");
+                setTimeout(() => setToastMessage(null), 2500);
+              }}
+              className={`px-5 py-2 rounded-xl text-xs font-semibold shadow-md transition-colors ${
+                isOpenToOpportunities
+                  ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-950/50"
+                  : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+              }`}
+            >
+              {isOpenToOpportunities ? "Open to Opportunities" : "Focused on Venture"}
             </button>
-            <button className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors">
+            <button
+              type="button"
+              onClick={() => {
+                setToastMessage("Choose section: Patents, Advisory, or Certifications");
+                setTimeout(() => setToastMessage(null), 2500);
+              }}
+              className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
+            >
               Add Profile Section
             </button>
             <button
@@ -281,7 +302,15 @@ Always open to connecting with passionate engineers, angel investors, and potent
             <Briefcase className="w-4 h-4 text-emerald-400" />
             <span>Experience</span>
           </h2>
-          <button className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+          <button
+            type="button"
+            onClick={() => {
+              setToastMessage("Add new role or venture form opened");
+              setTimeout(() => setToastMessage(null), 2500);
+            }}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            title="Add Experience"
+          >
             <Plus className="w-4 h-4" />
           </button>
         </div>

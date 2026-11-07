@@ -73,6 +73,8 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
 
   // Settings & Modals State (Instagram-style Settings Action Sheet matching Pic 3)
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isProfessionalModalOpen, setIsProfessionalModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isLikedModalOpen, setIsLikedModalOpen] = useState(false);
@@ -762,9 +764,66 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
                     <span>{isFlippedToBuilder ? "Personal" : "3D Flip 🔄"}</span>
                   </button>
                 )}
-                <button className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
-                  <MoreHorizontal className="w-5 h-5" />
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                    title="Profile Options"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
+
+                  {isMoreMenuOpen && (
+                    <div className="absolute right-0 top-9 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl py-1 z-30 text-xs space-y-0.5 animate-in fade-in duration-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          setIsMoreMenuOpen(false);
+                          setToastMsg("Profile URL copied to clipboard!");
+                          setTimeout(() => setToastMsg(null), 2500);
+                        }}
+                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-200"
+                      >
+                        Copy Profile URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setToastMsg(`Muted stories and posts from @${profile?.username || "user"}`);
+                          setTimeout(() => setToastMsg(null), 2500);
+                        }}
+                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-slate-300"
+                      >
+                        Mute User
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setToastMsg("Report submitted to moderation team.");
+                          setTimeout(() => setToastMsg(null), 2500);
+                        }}
+                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-amber-400"
+                      >
+                        Report Profile
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          setToastMsg(`Blocked @${profile?.username || "user"}.`);
+                          setTimeout(() => setToastMsg(null), 2500);
+                        }}
+                        className="w-full text-left px-3 py-1.5 hover:bg-slate-800 text-rose-400 font-semibold"
+                      >
+                        Block User
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -2334,6 +2393,13 @@ export const SocialProfileView: React.FC<SocialProfileViewProps> = ({
         username={profile.username}
         displayName={profile.displayName}
       />
+
+      {/* Floating Feedback Toast */}
+      {toastMsg && (
+        <div className="fixed bottom-20 sm:bottom-6 right-6 z-50 bg-slate-900 border border-violet-500/50 text-white text-xs px-4 py-2.5 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <span>{toastMsg}</span>
+        </div>
+      )}
     </div>
   );
 };

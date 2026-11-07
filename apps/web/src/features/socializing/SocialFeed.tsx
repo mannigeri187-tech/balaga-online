@@ -465,6 +465,10 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
           return [...uniqueStored, ...prev];
         });
       }
+      const myStory = JSON.parse(localStorage.getItem("balaga_user_my_story") || "null");
+      if (myStory) {
+        setStoriesList((prev) => [myStory, ...prev.filter((s) => !s.isMe)]);
+      }
     } catch {}
 
     const handleCustomPost = (e: any) => {
@@ -541,6 +545,28 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
     };
 
     setPosts([newPost, ...posts]);
+    try {
+      const stored = JSON.parse(localStorage.getItem("balaga_user_posts") || "[]");
+      localStorage.setItem("balaga_user_posts", JSON.stringify([newPost, ...stored]));
+    } catch {}
+
+    // Async sync to PostgreSQL backend
+    try {
+      fetch("/api/social/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-platform-world": "socializing",
+        },
+        body: JSON.stringify({
+          content: postText,
+          postType,
+          mediaUrls: postType === "image" && imageUrl ? [imageUrl] : [],
+          pollOptions: newPost.pollOptions,
+        }),
+      }).catch(() => {});
+    } catch {}
+
     setPostText("");
     setImageUrl("");
     setPostType("text");
@@ -664,6 +690,16 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   // Delete feed post
   const handleDeleteFeedPost = (postId: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== postId));
+    try {
+      const stored = JSON.parse(localStorage.getItem("balaga_user_posts") || "[]");
+      localStorage.setItem("balaga_user_posts", JSON.stringify(stored.filter((p: any) => p.id !== postId)));
+    } catch {}
+    try {
+      fetch(`/api/social/posts/${postId}`, {
+        method: "DELETE",
+        headers: { "x-platform-world": "socializing" },
+      }).catch(() => {});
+    } catch {}
     setShareToast("Post deleted successfully");
     setTimeout(() => setShareToast(null), 2500);
   };
@@ -697,6 +733,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   // Delete story
   const handleDeleteStory = (storyId: string) => {
     setStoriesList((prev) => prev.filter((s) => s.id !== storyId));
+    try {
+      localStorage.removeItem("balaga_user_my_story");
+    } catch {}
     setActiveStoryIdx(null);
     setShareToast("Story deleted");
     setTimeout(() => setShareToast(null), 2500);
@@ -722,6 +761,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
     };
 
     setStoriesList((prev) => [newStoryItem, ...prev.filter((s) => !s.isMe)]);
+    try {
+      localStorage.setItem("balaga_user_my_story", JSON.stringify(newStoryItem));
+    } catch {}
     setNewStoryUrl("");
     setNewStoryCaption("");
     setIsAddStoryOpen(false);

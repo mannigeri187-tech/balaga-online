@@ -104,6 +104,7 @@ export const CampusHubModal: React.FC<CampusHubModalProps> = ({
   const [ticketCountdown, setTicketCountdown] = useState<number>(15);
   const [passOtp, setPassOtp] = useState<string>("894-201");
   const [bookedMentorId, setBookedMentorId] = useState<string | null>(null);
+  const [selectedVaultSocietyId, setSelectedVaultSocietyId] = useState<string | null>(null);
 
   // Dynamic anti-scalper rolling OTP generator every 15 seconds
   useEffect(() => {
@@ -271,10 +272,32 @@ export const CampusHubModal: React.FC<CampusHubModalProps> = ({
                     </p>
                     <div className="mt-3 pt-3 border-t border-slate-800/50 flex justify-between items-center text-xs">
                       <span className="text-slate-500 text-[11px]">Includes past project records & repo links</span>
-                      <Button variant="outline" size="sm" className="h-7 text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10">
-                        View Club Vault
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setSelectedVaultSocietyId(selectedVaultSocietyId === society.id ? null : society.id)
+                        }
+                        className="h-7 text-xs border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
+                      >
+                        {selectedVaultSocietyId === society.id ? "Hide Vault" : "View Club Vault"}
                       </Button>
                     </div>
+
+                    {selectedVaultSocietyId === society.id && (
+                      <div className="mt-3 p-3 rounded-lg bg-indigo-950/20 border border-indigo-500/20 text-xs space-y-2 animate-in fade-in duration-150">
+                        <div className="flex items-center justify-between font-semibold text-indigo-300 text-[11px]">
+                          <span>📂 Club Vault & Archives</span>
+                          <span className="font-mono text-[10px] text-slate-400">repo: v2.4</span>
+                        </div>
+                        <div className="space-y-1 text-slate-300 text-[11px]">
+                          <p>• <strong>Primary Repository:</strong> <span className="font-mono text-indigo-400">github.com/{society.college.toLowerCase().replace(/[^a-z0-9]/g, '')}/{society.name.toLowerCase().replace(/[^a-z0-9]/g, '')}</span></p>
+                          <p>• <strong>Lead Contact:</strong> {society.lead}</p>
+                          <p>• <strong>Active Projects:</strong> Inter-collegiate rover telemetry & autonomous systems</p>
+                          <p>• <strong>Annual Handover:</strong> Verified digital handover timestamped to institutional registry</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -183,6 +183,66 @@ export const SocialCommunities: React.FC = () => {
 
   // New Discussion Post Form
   const [postContent, setPostContent] = useState("");
+  const [likedCommunityPostIds, setLikedCommunityPostIds] = useState<Set<string>>(new Set());
+  const [replyOpenPostId, setReplyOpenPostId] = useState<string | null>(null);
+  const [replyInputText, setReplyInputText] = useState<Record<string, string>>({});
+  const [postReplies, setPostReplies] = useState<Record<string, Array<{ id: string; author: string; text: string; time: string }>>>({});
+
+  const handleToggleLikeCommunityPost = (postId: string) => {
+    const isLiked = likedCommunityPostIds.has(postId);
+    setLikedCommunityPostIds((prev) => {
+      const next = new Set(prev);
+      if (isLiked) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+
+    if (selectedCommunity) {
+      setCommunityPosts((prev) => {
+        const commList = prev[selectedCommunity.id] || [];
+        return {
+          ...prev,
+          [selectedCommunity.id]: commList.map((p) =>
+            p.id === postId
+              ? { ...p, likesCount: isLiked ? Math.max(0, p.likesCount - 1) : p.likesCount + 1 }
+              : p
+          ),
+        };
+      });
+    }
+  };
+
+  const handleAddCommunityReply = (postId: string, e: React.FormEvent) => {
+    e.preventDefault();
+    const text = replyInputText[postId]?.trim();
+    if (!text) return;
+
+    const newReply = {
+      id: `rep-${Date.now()}`,
+      author: socialProfile?.displayName || "Aarav Social",
+      text,
+      time: "Just now",
+    };
+
+    setPostReplies((prev) => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), newReply],
+    }));
+
+    setReplyInputText((prev) => ({ ...prev, [postId]: "" }));
+
+    if (selectedCommunity) {
+      setCommunityPosts((prev) => {
+        const commList = prev[selectedCommunity.id] || [];
+        return {
+          ...prev,
+          [selectedCommunity.id]: commList.map((p) =>
+            p.id === postId ? { ...p, commentsCount: p.commentsCount + 1 } : p
+          ),
+        };
+      });
+    }
+  };
 
   // Create Community Form
   const [newCommName, setNewCommName] = useState("");
@@ -637,15 +697,70 @@ export const SocialCommunities: React.FC = () => {
                     </p>
 
                     <div className="flex items-center gap-4 pt-2 border-t border-slate-800/60 text-xs text-slate-400">
-                      <button className="flex items-center gap-1 hover:text-slate-200">
-                        <Heart className="w-3.5 h-3.5" />
+                      <button
+                        type="button"
+                        onClick={() => handleToggleLikeCommunityPost(post.id)}
+                        className={`flex items-center gap-1 transition-colors ${
+                          likedCommunityPostIds.has(post.id) ? "text-rose-400 font-semibold" : "hover:text-slate-200"
+                        }`}
+                        title="Like discussion"
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${likedCommunityPostIds.has(post.id) ? "fill-rose-400 text-rose-400" : ""}`} />
                         <span>{post.likesCount}</span>
                       </button>
-                      <button className="flex items-center gap-1 hover:text-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => setReplyOpenPostId(replyOpenPostId === post.id ? null : post.id)}
+                        className={`flex items-center gap-1 transition-colors ${
+                          replyOpenPostId === post.id ? "text-violet-400 font-semibold" : "hover:text-slate-200"
+                        }`}
+                        title="View and post replies"
+                      >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>{post.commentsCount} replies</span>
+                        <span>{post.commentsCount + (postReplies[post.id]?.length || 0)} replies</span>
                       </button>
                     </div>
+
+                    {/* Expandable replies list & input */}
+                    {replyOpenPostId === post.id && (
+                      <div className="pt-3 border-t border-slate-800/40 space-y-2.5 animate-in fade-in duration-150">
+                        {postReplies[post.id] && postReplies[post.id].length > 0 && (
+                          <div className="space-y-1.5 pl-2 border-l-2 border-violet-500/30">
+                            {postReplies[post.id].map((rep) => (
+                              <div key={rep.id} className="bg-slate-950/60 rounded-lg p-2 text-xs">
+                                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                                  <span className="font-semibold text-slate-200">{rep.author}</span>
+                                  <span>{rep.time}</span>
+                                </div>
+                                <p className="text-slate-300 mt-1">{rep.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <form
+                          onSubmit={(e) => handleAddCommunityReply(post.id, e)}
+                          className="flex items-center gap-2"
+                        >
+                          <input
+                            type="text"
+                            value={replyInputText[post.id] || ""}
+                            onChange={(e) =>
+                              setReplyInputText({ ...replyInputText, [post.id]: e.target.value })
+                            }
+                            placeholder="Write a reply..."
+                            className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          />
+                          <button
+                            type="submit"
+                            disabled={!replyInputText[post.id]?.trim()}
+                            className="p-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white rounded-xl shadow transition-all"
+                            title="Send reply"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                          </button>
+                        </form>
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (

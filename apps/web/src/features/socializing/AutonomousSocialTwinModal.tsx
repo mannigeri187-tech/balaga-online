@@ -242,6 +242,7 @@ export const AutonomousSocialTwinModal: React.FC<AutonomousSocialTwinModalProps>
                     className="flex-1 bg-slate-900 border border-slate-700 rounded-lg text-xs px-3 py-1.5 text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                   />
                   <Button
+                    type="submit"
                     variant="primary"
                     size="sm"
                     disabled={!newAttrLabel.trim()}

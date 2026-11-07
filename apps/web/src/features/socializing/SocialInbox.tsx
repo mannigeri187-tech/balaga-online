@@ -160,20 +160,23 @@ export const SocialInbox: React.FC = () => {
     ],
   });
 
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [showImagePicker, setShowImagePicker] = useState<boolean>(false);
+
   const activeConv = conversations.find((c) => c.id === selectedConversationId);
   const activeMessages = activeConv ? messages[activeConv.id] || [] : [];
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageInput.trim() || !activeConv) return;
+    if ((!messageInput.trim() && !attachedImage) || !activeConv) return;
     if (activeConv.partner.isBlocked) return;
 
     const newMessage: SocialMessage = {
       id: `msg-${Date.now()}`,
       conversationId: activeConv.id,
       senderId: socialProfile?.id || "10000000-0000-0000-0000-000000000001",
-      content: messageInput.trim(),
-      mediaUrl: null,
+      content: messageInput.trim() || (attachedImage ? "📷 Photo" : ""),
+      mediaUrl: attachedImage || null,
       createdAt: new Date().toISOString(),
     };
 
@@ -195,6 +198,8 @@ export const SocialInbox: React.FC = () => {
     );
 
     setMessageInput("");
+    setAttachedImage(null);
+    setShowImagePicker(false);
   };
 
   const handleToggleBlock = (convId: string) => {
@@ -491,6 +496,13 @@ export const SocialInbox: React.FC = () => {
                               : "bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700/60"
                           }`}
                         >
+                          {msg.mediaUrl && (
+                            <img
+                              src={msg.mediaUrl}
+                              alt="Attachment"
+                              className="rounded-xl max-h-48 w-full object-cover mb-1.5 border border-white/10"
+                            />
+                          )}
                           <p>{msg.content}</p>
                           <div
                             className={`flex items-center justify-end gap-1 text-[9px] ${
@@ -511,6 +523,77 @@ export const SocialInbox: React.FC = () => {
                   })}
                 </div>
 
+                {/* Photo Attachment Quick-Picks Picker */}
+                {showImagePicker && (
+                  <div className="p-3 bg-slate-900 border-t border-slate-800 space-y-2 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between text-[11px] text-slate-300">
+                      <span className="font-semibold">Attach Image URL or Preset:</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowImagePicker(false)}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        ✕ Close
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        placeholder="Paste image URL (https://...)"
+                        value={attachedImage || ""}
+                        onChange={(e) => setAttachedImage(e.target.value)}
+                        className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      />
+                      {attachedImage && (
+                        <button
+                          type="button"
+                          onClick={() => setAttachedImage(null)}
+                          className="px-2 py-1 bg-slate-800 text-slate-300 rounded text-xs hover:bg-slate-700"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                      <span>Presets:</span>
+                      {[
+                        { label: "Coffee", url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80" },
+                        { label: "Cubbon Park", url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&q=80" },
+                        { label: "Code Meetup", url: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80" },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            setAttachedImage(item.url);
+                            setShowImagePicker(false);
+                          }}
+                          className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-violet-300"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Attached Image Thumbnail Preview */}
+                {attachedImage && !showImagePicker && (
+                  <div className="px-3 py-1.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <img src={attachedImage} alt="Attachment" className="w-8 h-8 rounded object-cover border border-slate-700" />
+                      <span className="text-violet-300 text-[11px] font-medium">Image attached</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAttachedImage(null)}
+                      className="text-slate-400 hover:text-rose-400 text-xs font-semibold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+
                 {/* Bottom Composer or Blocked Alert */}
                 {activeConv.partner.isBlocked ? (
                   <div className="p-3 bg-rose-950/30 border-t border-rose-900/40 text-center text-xs text-rose-400 flex items-center justify-center gap-2">
@@ -521,7 +604,12 @@ export const SocialInbox: React.FC = () => {
                   <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-800 flex items-center gap-2 bg-slate-900/30">
                     <button
                       type="button"
-                      className="p-2 rounded-xl text-slate-400 hover:text-violet-400 hover:bg-slate-800 transition-colors"
+                      onClick={() => setShowImagePicker(!showImagePicker)}
+                      className={`p-2 rounded-xl transition-colors ${
+                        showImagePicker || attachedImage
+                          ? "bg-violet-600/20 text-violet-300 border border-violet-500/40"
+                          : "text-slate-400 hover:text-violet-400 hover:bg-slate-800"
+                      }`}
                       title="Attach photo"
                     >
                       <Image className="w-4 h-4" />
@@ -530,12 +618,12 @@ export const SocialInbox: React.FC = () => {
                       type="text"
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      placeholder="Type a message..."
+                      placeholder={attachedImage ? "Add a caption (optional)..." : "Type a message..."}
                       className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                     />
                     <button
                       type="submit"
-                      disabled={!messageInput.trim()}
+                      disabled={!messageInput.trim() && !attachedImage}
                       className="p-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white rounded-xl shadow-md transition-all"
                     >
                       <Send className="w-4 h-4" />

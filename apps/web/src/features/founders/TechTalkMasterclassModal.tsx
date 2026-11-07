@@ -327,6 +327,7 @@ export const TechTalkMasterclassModal: React.FC<TechTalkMasterclassModalProps> =
               </Button>
               <Button
                 size="sm"
+                onClick={() => window.open(`https://${selectedTalk.repoUrl}/raw/main/slides-deck.pdf`, "_blank")}
                 className="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold"
               >
                 Download Deck (.PDF)
