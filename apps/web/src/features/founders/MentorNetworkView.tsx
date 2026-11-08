@@ -38,6 +38,7 @@ import {
   MenteeDashboardStats,
 } from "@platform/shared-types";
 import { MENTOR_EXPERTISE_CATEGORIES } from "@platform/config";
+import { CalSchedulerModal } from "../../components/CalSchedulerModal";
 
 interface MentorNetworkViewProps {
   onNavigateTab?: (tab: string) => void;
@@ -75,6 +76,8 @@ export const MentorNetworkView: React.FC<MentorNetworkViewProps> = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
   const [requestTargetMentor, setRequestTargetMentor] = useState<MentorProfile | null>(null);
+  const [calMentorTarget, setCalMentorTarget] = useState<MentorProfile | null>(null);
+  const [isCalModalOpen, setIsCalModalOpen] = useState<boolean>(false);
   const [activeWorkspaceModal, setActiveWorkspaceModal] = useState<MentorshipWorkspace | null>(null);
   const [workspaceSubTab, setWorkspaceSubTab] = useState<
     "overview" | "sessions" | "goals" | "action_items" | "resources" | "notes" | "payment" | "review"
@@ -1222,13 +1225,13 @@ export const MentorNetworkView: React.FC<MentorNetworkViewProps> = () => {
                       </button>
                       <button
                         onClick={() => {
-                          setRequestTargetMentor(mentor);
-                          setIsRequestModalOpen(true);
+                          setCalMentorTarget(mentor);
+                          setIsCalModalOpen(true);
                         }}
-                        className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center space-x-1"
+                        className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center space-x-1.5 shadow-md shadow-amber-500/20"
                       >
-                        <span>Request</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>Book (Cal)</span>
                       </button>
                     </div>
                   </div>
@@ -1300,13 +1303,13 @@ export const MentorNetworkView: React.FC<MentorNetworkViewProps> = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setRequestTargetMentor(mentor);
-                      setIsRequestModalOpen(true);
+                      setCalMentorTarget(mentor);
+                      setIsCalModalOpen(true);
                     }}
-                    className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-1"
+                    className="flex-1 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center space-x-1.5 shadow-md shadow-amber-500/20"
                   >
-                    <span>Request</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Book (Cal)</span>
                   </button>
                 </div>
               </div>
@@ -1808,6 +1811,18 @@ export const MentorNetworkView: React.FC<MentorNetworkViewProps> = () => {
               >
                 <Flag className="w-3.5 h-3.5" />
                 <span>Report Profile</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setCalMentorTarget(selectedMentorDetail);
+                  setSelectedMentorDetail(null);
+                  setIsCalModalOpen(true);
+                }}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow-lg shadow-indigo-600/20"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Book 1:1 (Cal.com)</span>
               </button>
 
               <button
@@ -3024,6 +3039,27 @@ export const MentorNetworkView: React.FC<MentorNetworkViewProps> = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* CAL.COM EMBEDDED SCHEDULER MODAL */}
+      {isCalModalOpen && calMentorTarget && (
+        <CalSchedulerModal
+          isOpen={isCalModalOpen}
+          onClose={() => {
+            setIsCalModalOpen(false);
+            setCalMentorTarget(null);
+          }}
+          host={{
+            name: calMentorTarget.profile?.displayName || "Mentor",
+            role: calMentorTarget.headline,
+            company: calMentorTarget.companyExperience || undefined,
+            avatarUrl: calMentorTarget.profile?.avatarUrl || undefined,
+            topic: (calMentorTarget.expertise?.slice(0, 2).join(" & ") || "Founders Advisory") + " 1-on-1 Office Hours",
+            pricingLabel: calMentorTarget.pricing?.pricingOption === "free" ? "Free (Founders Realm)" : "₹" + (calMentorTarget.pricing?.price || 1500) + "/session",
+          }}
+          onBookingConfirmed={(booking: any) => {
+            showToast("1-on-1 with " + booking.host.name + " confirmed for " + booking.date + " at " + booking.time + "! Meeting link generated.");
+          }}
+        />
       )}
     </div>
   );

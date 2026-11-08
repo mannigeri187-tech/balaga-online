@@ -1,3 +1,4 @@
+import { CalSchedulerModal } from "../../components/CalSchedulerModal";
 import React, { useState, useEffect } from "react";
 import {
   Compass,
@@ -72,6 +73,8 @@ export const InvestorNetworkView: React.FC<InvestorNetworkViewProps> = () => {
 
   // Modals state
   const [selectedInvestorDetail, setSelectedInvestorDetail] = useState<InvestorProfile | null>(null);
+  const [calInvestorTarget, setCalInvestorTarget] = useState<InvestorProfile | null>(null);
+  const [isCalModalOpen, setIsCalModalOpen] = useState<boolean>(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState<boolean>(false);
@@ -1552,6 +1555,27 @@ export const InvestorNetworkView: React.FC<InvestorNetworkViewProps> = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* CAL.COM EMBEDDED SCHEDULER MODAL */}
+      {isCalModalOpen && calInvestorTarget && (
+        <CalSchedulerModal
+          isOpen={isCalModalOpen}
+          onClose={() => {
+            setIsCalModalOpen(false);
+            setCalInvestorTarget(null);
+          }}
+          host={{
+            name: calInvestorTarget.headline?.split("@")[0]?.trim() || "Investor Partner",
+            role: "Partner",
+            company: calInvestorTarget.headline?.split("@")[1]?.trim() || "Venture Fund",
+            topic: "Seed / Series A Pitch Discussion & Data Room Review",
+            pricingLabel: "Free (Founder Pitch)",
+          }}
+          onBookingConfirmed={(booking: any) => {
+            setActionSuccessMessage("Pitch discussion with " + booking.host.name + " confirmed for " + booking.date + " at " + booking.time + "!");
+            setTimeout(() => setActionSuccessMessage(null), 4000);
+          }}
+        />
       )}
     </div>
   );

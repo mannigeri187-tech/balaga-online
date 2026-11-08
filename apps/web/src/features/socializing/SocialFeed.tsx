@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useWorld } from "../../contexts/WorldContext";
 import { SocialPost, SocialComment } from "@platform/shared-types";
 import { SocialProfileEditor } from "./SocialProfileEditor";
+import { HeyMediaGrid } from "./HeyMediaGrid";
 import { Button } from "../../components/ui/Button";
 import {
   Heart,
@@ -76,7 +77,9 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   // Composer State
   const [postText, setPostText] = useState("");
   const [postType, setPostType] = useState<"text" | "image" | "poll">("text");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [customImageUrlInput, setCustomImageUrlInput] = useState<string>("");
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
 
   // Comments State (open comment drawer per post)
@@ -525,7 +528,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
       author: currentSocialProfile || undefined,
       content: postText,
       postType,
-      mediaUrls: postType === "image" && imageUrl ? [imageUrl] : [],
+      mediaUrls: postType === "image" && imageUrls.length > 0 ? imageUrls : [],
       mediaType: postType === "poll" ? "poll" : postType === "image" ? "image" : "none",
       pollOptions:
         postType === "poll"
@@ -561,14 +564,14 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
         body: JSON.stringify({
           content: postText,
           postType,
-          mediaUrls: postType === "image" && imageUrl ? [imageUrl] : [],
+          mediaUrls: postType === "image" && imageUrls.length > 0 ? imageUrls : [],
           pollOptions: newPost.pollOptions,
         }),
       }).catch(() => {});
     } catch {}
 
     setPostText("");
-    setImageUrl("");
+    setImageUrls([]);
     setPostType("text");
     setPollOptions(["", ""]);
   };
@@ -1047,15 +1050,110 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
 
         {/* Media or Poll dynamic inputs */}
         {postType === "image" && (
-          <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
-            <span className="text-[11px] font-semibold text-slate-400">Attach Image URL</span>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/photo-..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-slate-200"
-            />
+          <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <Image className="w-4 h-4 text-violet-400" />
+                <span>Add Photos ({imageUrls.length}/4)</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (!files.length) return;
+                    files.slice(0, 4 - imageUrls.length).forEach((file) => {
+                      const reader = new FileReader();
+                      reader.onload = (loadEvt) => {
+                        const res = loadEvt.target?.result as string;
+                        if (res) setImageUrls((prev) => [...prev, res].slice(0, 4));
+                      };
+                      reader.readAsDataURL(file);
+                    });
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-2.5 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-semibold flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Upload Files
+                </button>
+              </div>
+            </div>
+
+            {/* URL Input Bar */}
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={customImageUrlInput}
+                onChange={(e) => setCustomImageUrlInput(e.target.value)}
+                placeholder="Or paste public image URL..."
+                className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
+              />
+              <button
+                type="button"
+                disabled={!customImageUrlInput.trim() || imageUrls.length >= 4}
+                onClick={() => {
+                  if (customImageUrlInput.trim() && imageUrls.length < 4) {
+                    setImageUrls([...imageUrls, customImageUrlInput.trim()]);
+                    setCustomImageUrlInput("");
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-semibold"
+              >
+                Attach
+              </button>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="flex items-center gap-2 pt-1 overflow-x-auto text-[11px] text-slate-400">
+              <span className="shrink-0 text-slate-500">Presets:</span>
+              <button
+                type="button"
+                onClick={() => setImageUrls((p) => [...p, "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80"].slice(0, 4))}
+                className="px-2 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 shrink-0"
+              >
+                Cubbon Flora 🎨
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageUrls((p) => [...p, "https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80"].slice(0, 4))}
+                className="px-2 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 shrink-0"
+              >
+                Nandi Hills 🚴
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageUrls((p) => [...p, "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80"].slice(0, 4))}
+                className="px-2 py-0.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 shrink-0"
+              >
+                Sunrise Lake 🌅
+              </button>
+            </div>
+
+            {/* Thumbnail Previews */}
+            {imageUrls.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 pt-2">
+                {imageUrls.map((url, idx) => (
+                  <div key={idx} className="relative rounded-xl overflow-hidden aspect-video bg-slate-900 border border-slate-800 group">
+                    <img src={url} alt="Attached thumbnail" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== idx))}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-slate-950/80 text-rose-400 hover:text-white hover:bg-rose-600 transition-colors"
+                      aria-label="Remove image"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -1392,14 +1490,10 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
                       )}
                     </div>
 
-                    {/* Attached Photo */}
+                    {/* Hey.xyz Multi-Media Responsive Grid & Lightbox */}
                     {post.mediaUrls && post.mediaUrls.length > 0 && (
-                      <div className="rounded-xl overflow-hidden border border-slate-800 max-h-96">
-                        <img
-                          src={post.mediaUrls[0]}
-                          alt="Post media"
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="mt-3">
+                        <HeyMediaGrid mediaUrls={post.mediaUrls} alt={post.content.slice(0, 30)} />
                       </div>
                     )}
 
