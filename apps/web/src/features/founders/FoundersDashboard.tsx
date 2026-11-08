@@ -45,6 +45,7 @@ import { CustomSubdomainModal } from "./CustomSubdomainModal";
 import { HonestDomainPulseModal } from "./HonestDomainPulseModal";
 import { ProofOfTractionModal } from "./ProofOfTractionModal";
 import { VerifiableKudosModal } from "./VerifiableKudosModal";
+import { FreeDevStackModal } from "./FreeDevStackModal";
 import { IntelligenceControlModal } from "../../components/IntelligenceControlModal";
 
 interface FoundersDashboardProps {
@@ -105,6 +106,7 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
   const [isCreateStartupOpen, setIsCreateStartupOpen] = useState(false);
   const [isPostOppOpen, setIsPostOppOpen] = useState(false);
   const [isSubmitProductOpen, setIsSubmitProductOpen] = useState(false);
+  const [isFreeStackModalOpen, setIsFreeStackModalOpen] = useState(false);
   const [isBlueprintsModalOpen, setIsBlueprintsModalOpen] = useState(false);
   const [isCodeCastModalOpen, setIsCodeCastModalOpen] = useState(false);
   const [isHackathonModalOpen, setIsHackathonModalOpen] = useState(false);
@@ -796,6 +798,14 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            onClick={() => setIsFreeStackModalOpen(true)}
+            icon={<Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />}
+            className="bg-emerald-950/40 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-900/50 text-xs shadow-sm font-bold"
+          >
+            Free Dev Stack 🎁
+          </Button>
           <Button
             size="sm"
             onClick={() => setIsBlueprintsModalOpen(true)}
@@ -2413,6 +2423,15 @@ export const FoundersDashboard: React.FC<FoundersDashboardProps> = ({ onNavigate
           }}
         />
       )}
+
+      {/* ========================================================
+          FREE-FOR-DEV ₹0 STARTUP STACK MODAL
+      ======================================================== */}
+      <FreeDevStackModal
+        isOpen={isFreeStackModalOpen}
+        onClose={() => setIsFreeStackModalOpen(false)}
+        onClaimSubdomain={() => setIsSubdomainModalOpen(true)}
+      />
 
       {/* ========================================================
           FORKABLE BUILDER BLUEPRINTS MODAL (F16)
