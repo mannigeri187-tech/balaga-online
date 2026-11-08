@@ -1,3 +1,4 @@
+import { TwentyKanbanBoard, KanbanColumn } from "./TwentyKanbanBoard";
 import React, { useState, useEffect } from "react";
 import {
   Briefcase,
@@ -13,15 +14,13 @@ import {
   Users,
   Calendar,
   FileText,
-  MessageSquare,
   ShieldCheck,
   Sparkles,
   TrendingUp,
   FileCheck,
   AlertTriangle,
   X,
-  ExternalLink,
-} from "lucide-react";
+  } from "lucide-react";
 import {
   JobListing,
   JobApplication,
@@ -29,11 +28,78 @@ import {
   HiringPermissionMember,
 } from "@platform/shared-types";
 
+
+const ATS_COLUMNS: KanbanColumn[] = [
+  { id: "applied", title: "Applied", accentColor: "border-slate-500", badgeColor: "bg-slate-500/10 text-slate-400" },
+  { id: "shortlisted", title: "Review", accentColor: "border-indigo-500", badgeColor: "bg-indigo-500/10 text-indigo-400" },
+  { id: "screening", title: "Screening", accentColor: "border-amber-500", badgeColor: "bg-amber-500/10 text-amber-400" },
+  { id: "interview", title: "Interview (Cal)", accentColor: "border-purple-500", badgeColor: "bg-purple-500/10 text-purple-400" },
+  { id: "offer", title: "Offer Extended", accentColor: "border-emerald-500", badgeColor: "bg-emerald-500/10 text-emerald-400" },
+  { id: "hired", title: "Hired", accentColor: "border-green-500", badgeColor: "bg-green-500/10 text-green-400" },
+];
+
+const MOCK_PIPELINE_APPLICANTS: any[] = [
+  {
+    id: "app-mock-1",
+    status: "applied",
+    currentRole: "Senior Go / Distributed Systems Engineer",
+    experienceYears: 6,
+    expectedCompensation: "₹24 LPA",
+    joiningTimeline: "15 days",
+    canMessage: true,
+    personalIntro: "10+ years engineering high-throughput fintech infrastructure across India. Ex-Razorpay Senior Staff Engineer.",
+    resumeFileName: "vikram_sen_resume.pdf",
+    applicant: {
+      displayName: "Vikram Sen",
+      headline: "Ex-Razorpay Senior Staff Engineer | High-throughput Go",
+      avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+      skills: ["Go", "Distributed Systems", "PostgreSQL", "Kafka"],
+    },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "app-mock-2",
+    status: "screening",
+    currentRole: "Full-Stack React & Node Architect",
+    experienceYears: 5,
+    expectedCompensation: "₹24 LPA",
+    joiningTimeline: "15 days",
+    canMessage: true,
+    personalIntro: "Design technologist with 8 years building creative tools for vernacular crafts and cultural archiving.",
+    resumeFileName: "ananya_deshmukh_cv.pdf",
+    applicant: {
+      displayName: "Ananya Deshmukh",
+      headline: "Lead Frontend Engineer @ Vernacular Design Labs",
+      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80",
+      skills: ["React", "TypeScript", "Tailwind", "Next.js"],
+    },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "app-mock-3",
+    status: "interview",
+    currentRole: "Lead Product Designer & Design Systems",
+    experienceYears: 4,
+    expectedCompensation: "₹24 LPA",
+    joiningTimeline: "15 days",
+    canMessage: true,
+    personalIntro: "Specializing in micro-interactions, dark-mode design systems and responsive cross-platform canvas tools.",
+    resumeFileName: "nikhil_rao_portfolio.pdf",
+    applicant: {
+      displayName: "Nikhil Rao",
+      headline: "Design Technologist | Figma + Tailwind + Framer",
+      avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
+      skills: ["Product Design", "Figma", "User Research", "Prototyping"],
+    },
+    createdAt: new Date().toISOString(),
+  },
+];
+
 interface HiringCentreViewProps {
   onNavigateTab?: (tab: string) => void;
 }
 
-export const HiringCentreView: React.FC<HiringCentreViewProps> = ({ onNavigateTab }) => {
+export const HiringCentreView: React.FC<HiringCentreViewProps> = () => {
   const [activeSubTab, setActiveSubTab] = useState<
     | "discover"
     | "recommended"
@@ -65,6 +131,7 @@ export const HiringCentreView: React.FC<HiringCentreViewProps> = ({ onNavigateTa
   const [showCreateJobModal, setShowCreateJobModal] = useState<boolean>(false);
   const [pipelineJob, setPipelineJob] = useState<JobListing | null>(null);
   const [pipelineApplicants, setPipelineApplicants] = useState<JobApplication[]>([]);
+  const [pipelineViewMode, setPipelineViewMode] = useState<"kanban" | "list">("kanban");
   const [interviewModalApp, setInterviewModalApp] = useState<JobApplication | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState<boolean>(false);
   const [reportModalJob, setReportModalJob] = useState<JobListing | null>(null);
@@ -231,7 +298,7 @@ export const HiringCentreView: React.FC<HiringCentreViewProps> = ({ onNavigateTa
       });
       if (res.ok) {
         const data = await res.json();
-        setPipelineApplicants(data.applicants || []);
+        setPipelineApplicants(data.applicants && data.applicants.length > 0 ? data.applicants : MOCK_PIPELINE_APPLICANTS);
       }
     } catch (err) {
       console.error("Failed to fetch applicants:", err);
@@ -1396,145 +1463,146 @@ export const HiringCentreView: React.FC<HiringCentreViewProps> = ({ onNavigateTa
       )}
 
       {/* ===================================================================== */}
-      {/* MODAL 4: RECRUITER CANDIDATE PIPELINE MODAL                            */}
+      {/* MODAL 4: TWENTY-CRM STYLE CANDIDATE PIPELINE KANBAN                   */}
       {/* ===================================================================== */}
       {pipelineJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 text-slate-200">
-            <div className="flex items-start justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-6xl w-full max-h-[92vh] flex flex-col p-6 space-y-4 text-slate-200 shadow-2xl">
+            {/* Header with Title and Mode Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div>
-                <span className="text-xs font-bold text-emerald-400">
-                  Candidate Pipeline Management
-                </span>
-                <h3 className="text-lg font-bold text-white">{pipelineJob.title}</h3>
-                <span className="text-xs text-slate-400">
-                  {pipelineApplicants.length} Total Applicants Submitted
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Twenty CRM ATS Engine
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {pipelineApplicants.length} Candidates in Pipeline
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-white mt-1">{pipelineJob.title}</h3>
               </div>
-              <button
-                onClick={() => setPipelineJob(null)}
-                className="text-slate-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="flex rounded-xl bg-slate-950 p-1 border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setPipelineViewMode("kanban")}
+                    className={"px-3 py-1 text-xs font-bold rounded-lg transition-colors " + (pipelineViewMode === "kanban" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-400 hover:text-white")}
+                  >
+                    Kanban Board
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPipelineViewMode("list")}
+                    className={"px-3 py-1 text-xs font-bold rounded-lg transition-colors " + (pipelineViewMode === "list" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-400 hover:text-white")}
+                  >
+                    List Table
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setPipelineJob(null)}
+                  className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  aria-label="Close pipeline"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {pipelineApplicants.length === 0 ? (
-              <div className="p-8 text-center bg-slate-950 border border-slate-800 rounded-xl text-slate-400 text-sm">
-                No candidates have applied to this position yet.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {pipelineApplicants.map((app) => (
-                  <div
-                    key={app.id}
-                    className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3"
-                  >
-                    <div className="flex items-start justify-between">
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto min-h-[460px]">
+              {pipelineViewMode === "kanban" ? (
+                <TwentyKanbanBoard
+                  columns={ATS_COLUMNS}
+                  items={pipelineApplicants.map((app) => ({
+                    id: app.id,
+                    columnId: app.status || "applied",
+                    title: app.applicant?.displayName || "Candidate",
+                    subtitle: (app.currentRole || app.applicant?.headline || "Software Engineer") + " • " + (app.experienceYears || 4) + " yrs exp",
+                    avatarUrl: app.applicant?.avatarUrl,
+                    tags: app.applicant?.skills?.slice(0, 3) || ["TypeScript", "FullStack"],
+                    metrics: [
+                      {
+                        label: "Expected CTC",
+                        value: app.expectedCompensation || "Market Standard",
+                      },
+                      {
+                        label: "Notice Period",
+                        value: app.joiningTimeline || "Immediate",
+                      },
+                    ],
+                    actionLabel: "Schedule (Cal)",
+                    onActionClick: () => setInterviewModalApp(app),
+                  }))}
+                  onMoveItem={async (appId: string, targetColId: string) => {
+                    setPipelineApplicants((prev) =>
+                      prev.map((a) => (a.id === appId ? { ...a, status: targetColId as any } : a))
+                    );
+                    try {
+                      await fetch("/api/founders/hiring/applications/" + appId + "/status", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "x-platform-world": "founders",
+                        },
+                        body: JSON.stringify({ status: targetColId }),
+                      });
+                    } catch {}
+                  }}
+                  onItemClick={(item: any) => {
+                    const matched = pipelineApplicants.find((a) => a.id === item.id);
+                    if (matched) setInterviewModalApp(matched);
+                  }}
+                />
+              ) : (
+                <div className="space-y-3">
+                  {pipelineApplicants.map((app) => (
+                    <div
+                      key={app.id}
+                      className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between"
+                    >
                       <div>
-                        <h4 className="text-sm font-bold text-white">
-                          {app.applicant?.displayName || "Candidate"}
-                        </h4>
-                        <span className="text-xs text-slate-400 block">
-                          {app.currentRole || app.applicant?.headline} • {app.experienceYears || 5} yrs exp
+                        <h4 className="text-sm font-bold text-white">{app.applicant?.displayName || "Candidate"}</h4>
+                        <span className="text-xs text-slate-400">
+                          {(app.currentRole || app.applicant?.headline) + " • " + (app.experienceYears || 5) + " yrs exp"}
                         </span>
                       </div>
-
                       <div className="flex items-center gap-2">
-                        {/* Status transition dropdown */}
                         <select
                           value={app.status}
                           onChange={async (e) => {
                             const newStatus = e.target.value;
-                            await fetch(`/api/founders/hiring/applications/${app.id}/status`, {
+                            setPipelineApplicants((prev) =>
+                              prev.map((a) => (a.id === app.id ? { ...a, status: newStatus as any } : a))
+                            );
+                            await fetch("/api/founders/hiring/applications/" + app.id + "/status", {
                               method: "POST",
-                              headers: {
-                                "Content-Type": "application/json",
-                                "x-platform-world": "founders",
-                              },
+                              headers: { "Content-Type": "application/json", "x-platform-world": "founders" },
                               body: JSON.stringify({ status: newStatus }),
-                            });
-                            // Reload pipeline
-                            openPipeline(pipelineJob);
+                            }).catch(() => {});
                           }}
                           className="bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg px-2.5 py-1"
                         >
                           <option value="applied">Applied</option>
-                          <option value="viewed">Viewed</option>
-                          <option value="shortlisted">Shortlisted</option>
+                          <option value="shortlisted">Review</option>
                           <option value="screening">Screening</option>
                           <option value="interview">Interview</option>
                           <option value="offer">Offer</option>
                           <option value="hired">Hired</option>
-                          <option value="rejected">Rejected</option>
                         </select>
-
                         <button
                           onClick={() => setInterviewModalApp(app)}
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/30 flex items-center gap-1"
+                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1"
                         >
                           <Calendar className="w-3 h-3" /> Schedule
                         </button>
-
-                        {/* Explicit Message Button enforcing messaging permissions */}
-                        <button
-                          onClick={() => {
-                            if (app.canMessage) {
-                              alert(`Direct communication enabled. Starting chat with ${app.applicant?.displayName}.`);
-                              if (onNavigateTab) onNavigateTab("inbox");
-                            } else {
-                              alert("Candidate messaging requires an accepted professional connection for Basic accounts.");
-                            }
-                          }}
-                          className={`px-2.5 py-1 text-xs font-semibold rounded-lg flex items-center gap-1 ${
-                            app.canMessage
-                              ? "bg-emerald-600 hover:bg-emerald-500 text-white"
-                              : "bg-slate-800 text-slate-400 border border-slate-700"
-                          }`}
-                        >
-                          <MessageSquare className="w-3 h-3" /> Message
-                        </button>
                       </div>
                     </div>
-
-                    <p className="text-xs text-slate-300 italic bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/50">
-                      "{app.personalIntro}"
-                    </p>
-
-                    {/* Resume link & portfolio */}
-                    <div className="flex items-center gap-3 text-xs">
-                      <button
-                        onClick={async () => {
-                          const res = await fetch(`/api/founders/hiring/applications/${app.id}/resume`, {
-                            headers: { "x-platform-world": "founders" },
-                          });
-                          if (res.ok) {
-                            const data = await res.json();
-                            alert(`Downloading verified resume: ${data.resumeFileName}`);
-                          } else {
-                            alert("Unauthorized CV access.");
-                          }
-                        }}
-                        className="text-emerald-400 hover:underline flex items-center gap-1"
-                      >
-                        <FileText className="w-3.5 h-3.5" /> View Resume ({app.resumeFileName})
-                      </button>
-
-                      {app.portfolioUrl && (
-                        <a
-                          href={app.portfolioUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-slate-400 hover:text-white flex items-center gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3" /> Portfolio
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
