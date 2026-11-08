@@ -696,9 +696,12 @@ export const FoundersInbox: React.FC = () => {
                           : "hover:bg-slate-900/70"
                       }`}
                     >
-                      {/* Avatar */}
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg shrink-0 overflow-hidden">
-                        {conv.avatarUrl || (conv.type === "group" ? "👥" : conv.type === "workspace" ? "🚀" : "💬")}
+                      {/* Avatar with Chatwoot Presence Indicator */}
+                      <div className="relative shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg overflow-hidden">
+                          {conv.avatarUrl || (conv.type === "group" ? "👥" : conv.type === "workspace" ? "🚀" : "💬")}
+                        </div>
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950 shadow-sm" title="Online" />
                       </div>
 
                       {/* Content */}
@@ -781,8 +784,13 @@ export const FoundersInbox: React.FC = () => {
                           {activeConv.category.replace("_", " ")}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate">
-                        {activeConv.participants?.length || 2} participants · {activeConv.description || "Active channel"}
+                      <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Online
+                        </span>
+                        <span>·</span>
+                        <span>{activeConv.participants?.length || 2} participants · {activeConv.description || "Active channel"}</span>
                       </p>
                     </div>
                   </div>

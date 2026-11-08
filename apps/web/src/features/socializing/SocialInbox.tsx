@@ -12,9 +12,16 @@ import {
   VolumeX,
   Flag,
   CheckCheck,
+  Check,
+  UploadCloud,
 } from "lucide-react";
 
-interface InboxConversation extends SocialConversation {
+export interface ExtendedSocialMessage extends SocialMessage {
+  deliveryState?: "sent" | "delivered" | "read";
+  reactions?: Record<string, number>;
+}
+
+export interface InboxConversation extends SocialConversation {
   partner: {
     id: string;
     name: string;
@@ -22,6 +29,8 @@ interface InboxConversation extends SocialConversation {
     avatar: string;
     isBlocked?: boolean;
     isMuted?: boolean;
+    presence?: "online" | "away" | "offline";
+    lastSeen?: string;
   };
 }
 
@@ -65,6 +74,8 @@ export const SocialInbox: React.FC = () => {
         avatar: "🎨",
         isBlocked: false,
         isMuted: false,
+        presence: "online",
+        lastSeen: "Active now",
       },
       createdAt: new Date().toISOString(),
     },
@@ -97,6 +108,8 @@ export const SocialInbox: React.FC = () => {
         avatar: "🚴",
         isBlocked: false,
         isMuted: false,
+        presence: "away",
+        lastSeen: "Active 15m ago",
       },
       createdAt: new Date().toISOString(),
     },
@@ -121,7 +134,7 @@ export const SocialInbox: React.FC = () => {
   ]);
 
   // Active Messages Thread State
-  const [messages, setMessages] = useState<Record<string, SocialMessage[]>>({
+  const [messages, setMessages] = useState<Record<string, ExtendedSocialMessage[]>>({
     "conv-1": [
       {
         id: "msg-1",
@@ -130,6 +143,8 @@ export const SocialInbox: React.FC = () => {
         content: "Hey Aarav! Are you joining the Cubbon Park watercolor walk this Saturday?",
         mediaUrl: null,
         createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+        deliveryState: "read",
+        reactions: { "🎨": 1 },
       },
       {
         id: "msg-2",
@@ -138,6 +153,8 @@ export const SocialInbox: React.FC = () => {
         content: "Yes! Bringing my sketchbook and camera. Have you picked a spot near the bamboo grove?",
         mediaUrl: null,
         createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+        deliveryState: "read",
+        reactions: { "👍": 1 },
       },
       {
         id: "msg-3",
@@ -146,6 +163,8 @@ export const SocialInbox: React.FC = () => {
         content: "Looking forward to seeing your sketches at Lalbagh this weekend!",
         mediaUrl: null,
         createdAt: new Date(Date.now() - 3600000 * 1).toISOString(),
+        deliveryState: "read",
+        reactions: { "❤️": 1 },
       },
     ],
     "conv-2": [
@@ -156,12 +175,36 @@ export const SocialInbox: React.FC = () => {
         content: "What tire pressure do you run on the gravel detour?",
         mediaUrl: null,
         createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+        deliveryState: "delivered",
+        reactions: {},
       },
     ],
   });
 
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [showImagePicker, setShowImagePicker] = useState<boolean>(false);
+  const [isPartnerTyping, setIsPartnerTyping] = useState<boolean>(false);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleToggleReaction = (msgId: string, emoji: string) => {
+    if (!activeConv) return;
+    setMessages((prev) => {
+      const convMsgs = prev[activeConv.id] || [];
+      return {
+        ...prev,
+        [activeConv.id]: convMsgs.map((m) => {
+          if (m.id !== msgId) return m;
+          const currentReactions = { ...(m.reactions || {}) };
+          if (currentReactions[emoji]) {
+            delete currentReactions[emoji];
+          } else {
+            currentReactions[emoji] = (currentReactions[emoji] || 0) + 1;
+          }
+          return { ...m, reactions: currentReactions };
+        }),
+      };
+    });
+  };
 
   const activeConv = conversations.find((c) => c.id === selectedConversationId);
   const activeMessages = activeConv ? messages[activeConv.id] || [] : [];
@@ -171,26 +214,31 @@ export const SocialInbox: React.FC = () => {
     if ((!messageInput.trim() && !attachedImage) || !activeConv) return;
     if (activeConv.partner.isBlocked) return;
 
-    const newMessage: SocialMessage = {
-      id: `msg-${Date.now()}`,
+    const userMsgText = messageInput.trim() || (attachedImage ? "📷 Photo" : "");
+    const msgId = `msg-${Date.now()}`;
+
+    const newMessage: ExtendedSocialMessage = {
+      id: msgId,
       conversationId: activeConv.id,
       senderId: socialProfile?.id || "10000000-0000-0000-0000-000000000001",
-      content: messageInput.trim() || (attachedImage ? "📷 Photo" : ""),
+      content: userMsgText,
       mediaUrl: attachedImage || null,
       createdAt: new Date().toISOString(),
+      deliveryState: "sent",
+      reactions: {},
     };
 
-    setMessages({
-      ...messages,
-      [activeConv.id]: [...activeMessages, newMessage],
-    });
+    setMessages((prev) => ({
+      ...prev,
+      [activeConv.id]: [...(prev[activeConv.id] || []), newMessage],
+    }));
 
-    setConversations(
-      conversations.map((c) =>
+    setConversations((prev) =>
+      prev.map((c) =>
         c.id === activeConv.id
           ? {
               ...c,
-              lastMessage: messageInput.trim(),
+              lastMessage: userMsgText,
               lastMessageAt: new Date().toISOString(),
             }
           : c
@@ -200,6 +248,67 @@ export const SocialInbox: React.FC = () => {
     setMessageInput("");
     setAttachedImage(null);
     setShowImagePicker(false);
+
+    // Chatwoot Real-Time Flow: Advance to delivered -> read -> simulated contextual reply
+    const currentConvId = activeConv.id;
+    const partner = activeConv.partner;
+
+    setTimeout(() => {
+      setMessages((prev) => ({
+        ...prev,
+        [currentConvId]: (prev[currentConvId] || []).map((m) =>
+          m.id === msgId ? { ...m, deliveryState: "delivered" } : m
+        ),
+      }));
+    }, 400);
+
+    if (partner.presence === "online") {
+      setTimeout(() => {
+        setIsPartnerTyping(true);
+        setMessages((prev) => ({
+          ...prev,
+          [currentConvId]: (prev[currentConvId] || []).map((m) =>
+            m.id === msgId ? { ...m, deliveryState: "read" } : m
+          ),
+        }));
+      }, 900);
+
+      setTimeout(() => {
+        setIsPartnerTyping(false);
+        const replyText =
+          currentConvId === "conv-1"
+            ? "Awesome! Can't wait to see your watercolor sketches. See you Saturday at Cubbon! 🎨✨"
+            : "Good question! About 38 PSI gives you optimal cornering grip and avoids pinch flats on that gravel detour 🚴💨";
+
+        const replyMsg: ExtendedSocialMessage = {
+          id: `msg-${Date.now()}`,
+          conversationId: currentConvId,
+          senderId: partner.id,
+          content: replyText,
+          mediaUrl: null,
+          createdAt: new Date().toISOString(),
+          deliveryState: "read",
+          reactions: {},
+        };
+
+        setMessages((prev) => ({
+          ...prev,
+          [currentConvId]: [...(prev[currentConvId] || []), replyMsg],
+        }));
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === currentConvId
+              ? {
+                  ...c,
+                  lastMessage: replyText,
+                  lastMessageAt: new Date().toISOString(),
+                }
+              : c
+          )
+        );
+      }, 2300);
+    }
   };
 
   const handleToggleBlock = (convId: string) => {
@@ -374,7 +483,9 @@ export const SocialInbox: React.FC = () => {
                       <div className="w-10 h-10 rounded-full bg-violet-600/20 text-violet-300 font-bold flex items-center justify-center text-sm border border-violet-500/30">
                         {conv.partner.avatar}
                       </div>
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-900" />
+                      <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${
+    conv.partner.presence === "online" ? "bg-emerald-500" : conv.partner.presence === "away" ? "bg-amber-500" : "bg-slate-500"
+  }`} />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -433,9 +544,13 @@ export const SocialInbox: React.FC = () => {
                           <VolumeX className="w-3 h-3 text-slate-400" />
                         )}
                       </div>
-                      <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        Online
+                      <span className={`text-[10px] font-medium flex items-center gap-1 ${
+                        activeConv.partner.presence === "online" ? "text-emerald-400" : "text-slate-400"
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          activeConv.partner.presence === "online" ? "bg-emerald-500 animate-pulse" : "bg-slate-500"
+                        }`} />
+                        {activeConv.partner.lastSeen || (activeConv.partner.presence === "online" ? "Active now" : "Offline")}
                       </span>
                     </div>
                   </div>
@@ -480,15 +595,33 @@ export const SocialInbox: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Messages Body */}
+                {/* Messages Body (Chatwoot Real-Time Engine) */}
                 <div className="flex-1 p-4 overflow-y-auto space-y-3">
                   {activeMessages.map((msg) => {
                     const isMe = msg.senderId === (socialProfile?.id || "10000000-0000-0000-0000-000000000001");
                     return (
                       <div
                         key={msg.id}
-                        className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                        className={`flex flex-col group relative ${isMe ? "items-end" : "items-start"}`}
                       >
+                        {/* Quick Hover Reactions Bar (Chatwoot Standard) */}
+                        <div
+                          className={`absolute -top-3 hidden group-hover:flex items-center gap-0.5 bg-slate-900 border border-slate-700 rounded-full px-1.5 py-0.5 shadow-lg z-10 ${
+                            isMe ? "right-2" : "left-2"
+                          }`}
+                        >
+                          {["👍", "❤️", "🔥", "🙌", "✨"].map((emoji) => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => handleToggleReaction(msg.id, emoji)}
+                              className="hover:scale-125 transition text-xs p-0.5"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+
                         <div
                           className={`max-w-xs md:max-w-sm rounded-2xl p-3 text-xs leading-relaxed space-y-1 shadow-sm ${
                             isMe
@@ -515,12 +648,54 @@ export const SocialInbox: React.FC = () => {
                                 minute: "2-digit",
                               })}
                             </span>
-                            {isMe && <CheckCheck className="w-3 h-3 text-violet-200" />}
+                            {/* Chatwoot Read Receipts: Sent ✓ | Delivered ✓✓ | Read ✓✓ (Blue) */}
+                            {isMe && (
+                              <span className="inline-flex items-center" title={msg.deliveryState || "sent"}>
+                                {msg.deliveryState === "read" ? (
+                                  <CheckCheck className="w-3 h-3 text-sky-300" />
+                                ) : msg.deliveryState === "delivered" ? (
+                                  <CheckCheck className="w-3 h-3 text-violet-200" />
+                                ) : (
+                                  <Check className="w-3 h-3 text-violet-300" />
+                                )}
+                              </span>
+                            )}
                           </div>
                         </div>
+
+                        {/* Reactions Pill Counter */}
+                        {msg.reactions && Object.keys(msg.reactions).length > 0 && (
+                          <div className={`flex flex-wrap gap-1 mt-1 ${isMe ? "justify-end" : "justify-start"}`}>
+                            {Object.entries(msg.reactions).map(([emoji, count]) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => handleToggleReaction(msg.id, emoji)}
+                                className="px-1.5 py-0.5 rounded-full bg-slate-900/90 border border-slate-700 text-[10px] flex items-center gap-1 hover:border-violet-500 transition"
+                              >
+                                <span>{emoji}</span>
+                                <span className="text-slate-300 font-bold">{count}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
+
+                  {/* Chatwoot Live Typing Indicator */}
+                  {isPartnerTyping && (
+                    <div className="flex items-center gap-2 text-xs text-slate-400 py-1.5 px-3 bg-slate-900/70 border border-slate-800 rounded-xl w-fit animate-in fade-in">
+                      <div className="flex gap-1 items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:0.15s]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:0.3s]" />
+                      </div>
+                      <span className="text-[11px] font-medium text-slate-300">
+                        {activeConv.partner.name} is typing...
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Photo Attachment Quick-Picks Picker */}
@@ -555,6 +730,33 @@ export const SocialInbox: React.FC = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                      <div className="w-full pb-1">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                setAttachedImage(reader.result as string);
+                                setShowImagePicker(false);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 text-[11px] font-medium flex items-center justify-center gap-1.5 transition"
+                        >
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          <span>Upload Local Photo from Device</span>
+                        </button>
+                      </div>
                       <span>Presets:</span>
                       {[
                         { label: "Coffee", url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80" },
