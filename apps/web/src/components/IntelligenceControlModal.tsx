@@ -13,6 +13,10 @@ import {
   RefreshCw,
   X,
   Lock,
+  Volume2,
+  VolumeX,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useWorld } from "../contexts/WorldContext";
 import { WORLDS } from "@platform/config";
@@ -24,6 +28,95 @@ import {
   ConsequentialActionProposal,
   AiTaskType,
 } from "@platform/shared-types";
+
+
+export interface AiPersona {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  tagline: string;
+  defaultPrompt: string;
+  taskType: AiTaskType;
+}
+
+const FOUNDERS_PERSONAS: AiPersona[] = [
+  {
+    id: "advisor",
+    name: "Venture Advisor",
+    avatar: "🏛️",
+    role: "Strategic Growth & Unit Economics",
+    tagline: "Term sheet guidance, market sizing, and Indian founder playbooks",
+    defaultPrompt: "Analyze startup unit economics, pitch strategy, and 18-month runway planning",
+    taskType: "market_research",
+  },
+  {
+    id: "matcher",
+    name: "Co-Founder Matcher",
+    avatar: "🤝",
+    role: "Founding Team Synergy",
+    tagline: "Culture fit, tech equity splits, and cross-functional pairing",
+    defaultPrompt: "Find co-founders with React and Three.js capabilities for AI workspace",
+    taskType: "matching",
+  },
+  {
+    id: "pitch",
+    name: "Pitch Deck Reviewer",
+    avatar: "📑",
+    role: "Investor Narrative Architect",
+    tagline: "10-slide teardown, narrative hook, and traction defensibility",
+    defaultPrompt: "Review our pre-seed pitch outline and unit economics narrative",
+    taskType: "review",
+  },
+  {
+    id: "grants",
+    name: "Grants & SISFS Sentinel",
+    avatar: "⚖️",
+    role: "Non-Dilutive Indian Funding",
+    tagline: "SISFS, DPIIT startup India, state incubation grants & compliance",
+    defaultPrompt: "Alert me to upcoming Indian tech grants, SISFS intake, and hackathons",
+    taskType: "deadline_alert",
+  },
+];
+
+const SOCIAL_PERSONAS: AiPersona[] = [
+  {
+    id: "namma_guide",
+    name: "Namma Bengaluru Guide",
+    avatar: "☕",
+    role: "Hyperlocal Culture & Hangouts",
+    tagline: "Cubbon tree walks, CTR dosa, filter coffee hubs, and weekend popups",
+    defaultPrompt: "Recommend cultural hangouts, filter coffee spots, and weekend walking trails in Bangalore",
+    taskType: "living_board_curator",
+  },
+  {
+    id: "braintrust",
+    name: "Circle Brain Trust",
+    avatar: "🧠",
+    role: "Collaborative Skill Mentor",
+    tagline: "Amateur film, photography, tech jams, and hobby circle synergy",
+    defaultPrompt: "How should a beginner get started with street photography in Bangalore?",
+    taskType: "braintrust_assist",
+  },
+  {
+    id: "storyteller",
+    name: "Vernacular Storyteller",
+    avatar: "🎙️",
+    role: "Bhasha Cultural Nuance",
+    tagline: "Regional idioms, multilingual narrative, and authentic storytelling",
+    defaultPrompt: "Draft engaging, culturally respectful captions for morning coffee and badminton",
+    taskType: "caption_assistant",
+  },
+  {
+    id: "sentinel",
+    name: "Civic & Safe Sentinel",
+    avatar: "🛡️",
+    role: "Harmonious Community Guardian",
+    tagline: "Respectful discourse, sentiment check, and anti-harassment safeguards",
+    defaultPrompt: "Check this message for compliance with civil community standards",
+    taskType: "moderation_assist",
+  },
+];
 
 interface IntelligenceControlModalProps {
   isOpen: boolean;
@@ -43,6 +136,41 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<AiResponsePayload | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const personas = isSocial ? SOCIAL_PERSONAS : FOUNDERS_PERSONAS;
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string>(isSocial ? "namma_guide" : "advisor");
+  const selectedPersona = personas.find((p) => p.id === selectedPersonaId) || personas[0];
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleToggleSpeech = (text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    } else {
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/[*_#`]/g, "");
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.0;
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+    }
+  };
+
+  const handleCopyText = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  useEffect(() => {
+    if (!isOpen && typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  }, [isOpen]);
   const [pendingProposal, setPendingProposal] = useState<ConsequentialActionProposal | null>(null);
 
   // Consent & Memory State
@@ -329,6 +457,49 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
                 </div>
               </div>
 
+                            {/* LOBE-CHAT INSPIRED ROLE-BASED AGENT PERSONAS */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    LobeChat Agent Personas
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    Role-based AI avatars & specialized prompts
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {personas.map((p) => {
+                    const isSelected = p.id === selectedPersona.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPersonaId(p.id);
+                          setTaskType(p.taskType);
+                          setPromptText(p.defaultPrompt);
+                        }}
+                        className={`p-2.5 rounded-2xl text-left border transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? isSocial
+                              ? "bg-violet-950/50 border-violet-500/70 shadow-lg shadow-violet-950/40 ring-1 ring-violet-500/30"
+                              : "bg-emerald-950/50 border-emerald-500/70 shadow-lg shadow-emerald-950/40 ring-1 ring-emerald-500/30"
+                            : "bg-slate-900/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">{p.avatar}</span>
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold text-slate-100 truncate">{p.name}</h4>
+                            <p className="text-[10px] text-slate-400 truncate">{p.role}</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Task Selector */}
               <div className="flex gap-2 flex-wrap">
                 {(isSocial
@@ -432,29 +603,79 @@ export const IntelligenceControlModal: React.FC<IntelligenceControlModalProps> =
                 </div>
               )}
 
-              {/* Response Display */}
+              {/* LOBE-CHAT GLASSMORPHIc AI RESPONSE CARD WITH TTS & ACTIONS */}
               {response && (
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs font-bold text-slate-200">Intelligence Synthesis</span>
+                <div className="p-4 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/60 space-y-3.5 shadow-2xl animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-lg shadow-inner">
+                        {selectedPersona.avatar}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-100">{selectedPersona.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+                            {response.model}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">{selectedPersona.role}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
-                      <span>Model: <strong className="text-slate-300">{response.model}</strong></span>
-                      <span>Latency: <strong className="text-slate-300">{response.latencyMs}ms</strong></span>
-                      <span>Cost: <strong className="text-emerald-400">₹{response.costInr}</strong></span>
+
+                    <div className="flex items-center gap-2">
+                      {/* Web Speech API Voice Synthesis (Zero dependencies) */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSpeech(response.content)}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition ${
+                          isSpeaking
+                            ? "bg-amber-500/20 text-amber-300 border-amber-500/40 animate-pulse"
+                            : "bg-slate-800/80 hover:bg-slate-800 text-slate-300 border-slate-700"
+                        }`}
+                        title="Voice Synthesis via Web Speech API"
+                      >
+                        {isSpeaking ? (
+                          <>
+                            <VolumeX className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Stop Voice</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Voice (TTS)</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Copy to Clipboard */}
+                      <button
+                        type="button"
+                        onClick={() => handleCopyText(response.content)}
+                        className="p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition"
+                        title="Copy to clipboard"
+                      >
+                        {isCopied ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        )}
+                      </button>
+
+                      <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-slate-400 pl-1 border-l border-slate-800">
+                        <span>{response.latencyMs}ms</span>
+                        <span className="text-emerald-400 font-bold">₹{response.costInr}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                  <div className="text-xs text-slate-100 leading-relaxed whitespace-pre-wrap font-sans">
                     {response.content}
                   </div>
 
                   {response.explanation && (
-                    <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
-                      <span className="text-sky-400 font-semibold">Why this response:</span>
-                      <span>{response.explanation}</span>
+                    <div className="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800/90 text-[11px] text-slate-400 flex items-center gap-2">
+                      <span className="text-sky-400 font-semibold shrink-0">Why this response:</span>
+                      <span className="truncate">{response.explanation}</span>
                     </div>
                   )}
 

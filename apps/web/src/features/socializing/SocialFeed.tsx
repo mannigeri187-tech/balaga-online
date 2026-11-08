@@ -67,6 +67,7 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
   const [isTwinModalOpen, setIsTwinModalOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [translatedPostIds, setTranslatedPostIds] = useState<Set<string>>(new Set());
+  const [postTargetLangs, setPostTargetLangs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (initialTab) {
@@ -1450,47 +1451,93 @@ export const SocialFeed: React.FC<SocialFeedProps> = ({ initialTab = "for_you" }
                     <div className="space-y-2">
                       <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
                         {translatedPostIds.has(post.id)
-                          ? translateWithBhasha(post.content).translatedText
+                          ? translateWithBhasha(post.content, postTargetLangs[post.id] || "en").translatedText
                           : post.content}
                       </p>
 
-                      {/* BHASHA CULTURAL TRANSLATION ENGINE (S16) */}
-                      {translateWithBhasha(post.content).hasSlang && (
-                        <div className="pt-1 flex flex-wrap items-center gap-1.5 text-[11px]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setTranslatedPostIds((prev) => {
-                                const next = new Set(prev);
-                                if (next.has(post.id)) next.delete(post.id);
-                                else next.add(post.id);
-                                return next;
-                              });
-                            }}
-                            className="px-2 py-0.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center gap-1 font-medium transition-colors"
-                          >
-                            <Languages className="w-3 h-3 text-violet-400" />
-                            <span>
-                              {translatedPostIds.has(post.id) ? "Show Original" : "Bhasha Nuance 🌐"}
-                            </span>
-                          </button>
+                      {/* BHASHA CULTURAL TRANSLATION ENGINE (S16 - INDICTRANS2 SPEC) */}
+                      {(() => {
+                        const bhasha = translateWithBhasha(post.content, postTargetLangs[post.id] || "en");
+                        const isTranslated = translatedPostIds.has(post.id);
+                        if (!bhasha.hasSlang && !isTranslated) return null;
 
-                          {/* Slang Glossary Pills */}
-                          {translateWithBhasha(post.content).detectedSlangs.map((s) => (
-                            <span
-                              key={s.term}
-                              className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1"
-                              title={`${s.language}: ${s.meaning}. ${s.culturalNote}`}
-                            >
-                              <span className="font-semibold text-amber-300">{s.term}:</span>
-                              <span>{s.meaning}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                        return (
+                          <div className="pt-1 space-y-1.5 text-[11px]">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTranslatedPostIds((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(post.id)) next.delete(post.id);
+                                    else next.add(post.id);
+                                    return next;
+                                  });
+                                }}
+                                className="px-2.5 py-0.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center gap-1 font-medium transition-colors"
+                              >
+                                <Languages className="w-3 h-3 text-violet-400" />
+                                <span>
+                                  {isTranslated ? "Show Original" : "Bhasha Nuance 🌐"}
+                                </span>
+                              </button>
+
+                              {/* Script & Language Detection Tag */}
+                              {bhasha.detectedLanguage.code !== "en" && (
+                                <span className="px-2 py-0.5 rounded-md bg-violet-950/40 border border-violet-800/40 text-[10px] text-violet-300 flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                                  <span>{bhasha.detectedLanguage.nativeName} ({bhasha.detectedLanguage.name})</span>
+                                </span>
+                              )}
+
+                              {/* Slang Glossary Pills */}
+                              {bhasha.detectedSlangs.map((s) => (
+                                <span
+                                  key={s.term}
+                                  className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1"
+                                  title={`${s.language}: ${s.meaning}. ${s.culturalNote}`}
+                                >
+                                  <span className="font-semibold text-amber-300">{s.term}:</span>
+                                  <span>{s.meaning}</span>
+                                </span>
+                              ))}
+                            </div>
+
+                            {/* IndicTrans2 Target Language Switcher */}
+                            {isTranslated && (
+                              <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-lg border border-slate-800/80 text-[10px]">
+                                <span className="text-slate-400 font-mono text-[9px] px-1">IndicTrans2:</span>
+                                {[
+                                  { code: "en", label: "English" },
+                                  { code: "kn", label: "ಕನ್ನಡ" },
+                                  { code: "hi", label: "हिन्दी" },
+                                  { code: "ta", label: "தமிழ்" },
+                                  { code: "te", label: "తెలుగు" },
+                                ].map((l) => {
+                                  const active = (postTargetLangs[post.id] || "en") === l.code;
+                                  return (
+                                    <button
+                                      key={l.code}
+                                      type="button"
+                                      onClick={() => setPostTargetLangs((prev) => ({ ...prev, [post.id]: l.code }))}
+                                      className={`px-2 py-0.5 rounded transition ${
+                                        active
+                                          ? "bg-violet-600 text-white font-bold shadow-sm"
+                                          : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                                      }`}
+                                    >
+                                      {l.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
-                    {/* Hey.xyz Multi-Media Responsive Grid & Lightbox */}
+                                      {/* Hey.xyz Multi-Media Responsive Grid & Lightbox */}
                     {post.mediaUrls && post.mediaUrls.length > 0 && (
                       <div className="mt-3">
                         <HeyMediaGrid mediaUrls={post.mediaUrls} alt={post.content.slice(0, 30)} />
