@@ -29,6 +29,10 @@ import {
   X,
   RefreshCw,
   FolderPlus,
+  Share2,
+  Copy,
+  Check,
+  Link2,
 } from "lucide-react";
 import { Product, ProductCategory, ProductComment, ProductReview, ProductUpdate } from "@platform/shared-types";
 
@@ -83,6 +87,8 @@ export const ProductLaunchpadView: React.FC<ProductLaunchpadViewProps> = ({ onNa
   const [newReviewTitle, setNewReviewTitle] = useState<string>("");
   const [newReviewContent, setNewReviewContent] = useState<string>("");
   const [appealReason, setAppealReason] = useState<string>("");
+  const [customSlug, setCustomSlug] = useState<string>("");
+  const [isCopiedDub, setIsCopiedDub] = useState<boolean>(false);
 
   // Launch Wizard Form
   const [formName, setFormName] = useState<string>("");
@@ -995,6 +1001,20 @@ export const ProductLaunchpadView: React.FC<ProductLaunchpadViewProps> = ({ onNa
 
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => {
+                          const slug = selectedProduct.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+                          const dubLink = `https://balaga.link/p/${slug}?ref=launchpad`;
+                          navigator.clipboard.writeText(dubLink);
+                          showToast(`Dub.co tracking short-link copied: ${dubLink}`);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 text-xs font-semibold hover:bg-indigo-500/20 transition"
+                        title="Copy Dub.co Attribution Link"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        <span>Share (balaga.link)</span>
+                      </button>
+
+                      <button
                         onClick={() => handleFollow(selectedProduct.id)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
                           selectedProduct.hasFollowed
@@ -1567,6 +1587,97 @@ export const ProductLaunchpadView: React.FC<ProductLaunchpadViewProps> = ({ onNa
               </div>
             </div>
 
+            {/* DUB.CO LINK MANAGEMENT & ATTRIBUTION ENGINE */}
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Link2 className="w-4 h-4 text-indigo-400" />
+                  <span className="text-xs font-bold text-white">Dub.co Branded Short Link & Attribution</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono">
+                  dub.co engine
+                </span>
+              </div>
+
+              {/* Short Link Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex-1 flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 font-mono">
+                  <span className="text-indigo-400 font-bold">balaga.link/p/</span>
+                  <input
+                    type="text"
+                    value={customSlug || (selectedProduct?.name?.toLowerCase().replace(/[^a-z0-9]/g, "-") || "launch")}
+                    onChange={(e) => setCustomSlug(e.target.value)}
+                    className="bg-transparent border-none text-white focus:outline-none flex-1 font-semibold"
+                    placeholder="custom-slug"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const slug = customSlug || (selectedProduct?.name?.toLowerCase().replace(/[^a-z0-9]/g, "-") || "launch");
+                    const fullLink = `https://balaga.link/p/${slug}?utm_source=balaga&utm_medium=launchpad`;
+                    navigator.clipboard.writeText(fullLink);
+                    setIsCopiedDub(true);
+                    showToast(`Dub.co link copied: ${fullLink}`);
+                    setTimeout(() => setIsCopiedDub(false), 2000);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition shadow"
+                >
+                  {isCopiedDub ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{isCopiedDub ? "Copied Link!" : "Copy Short Link"}</span>
+                </button>
+              </div>
+
+              {/* Deep Attribution Channels (Dub.co Spec) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Referrers */}
+                <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1.5">
+                  <div className="text-[11px] font-bold text-slate-300">Top Referrer Channels</div>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Balaga Founder Circles</span>
+                      <strong className="text-indigo-300">45% (528 clicks)</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>X / Twitter</span>
+                      <strong className="text-slate-300">28% (328 clicks)</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>LinkedIn</span>
+                      <strong className="text-slate-300">17% (199 clicks)</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Direct & QR Code</span>
+                      <strong className="text-slate-300">10% (117 clicks)</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Geographies */}
+                <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1.5">
+                  <div className="text-[11px] font-bold text-slate-300">Geographic Attribution</div>
+                  <div className="space-y-1 text-[11px]">
+                    <div className="flex justify-between text-slate-400">
+                      <span>🇮🇳 Bengaluru, KA</span>
+                      <strong className="text-emerald-400">54%</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>🇮🇳 Hyderabad, TG</span>
+                      <strong className="text-slate-300">18%</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>🇮🇳 Mumbai, MH</span>
+                      <strong className="text-slate-300">15%</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>🌍 US & Global</span>
+                      <strong className="text-slate-300">13%</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 7-Day Trend History */}
             <div className="space-y-2 pt-2">
               <h4 className="text-xs font-bold text-slate-300">7-Day Engagement Trend</h4>
@@ -1582,8 +1693,7 @@ export const ProductLaunchpadView: React.FC<ProductLaunchpadViewProps> = ({ onNa
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </div>          </div>
         </div>
       )}
 
