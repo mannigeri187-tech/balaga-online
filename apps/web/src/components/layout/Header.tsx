@@ -25,7 +25,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onNavigateTab }) => {
   const { activeWorld, socialProfile, founderProfile } = useWorld();
-  const { account } = useAuth();
+  const { account, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -244,9 +244,19 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateTab }) => {
                 {/* Logout Button */}
                 <div className="pt-1">
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsDropdownOpen(false);
-                      window.location.reload();
+                      try {
+                        await logout();
+                      } catch (err) {
+                        console.error("Logout error:", err);
+                      }
+                      localStorage.removeItem("balaga_demo_account");
+                      localStorage.removeItem("balaga_active_world");
+                      if (onNavigateTab) {
+                        onNavigateTab("landing");
+                      }
+                      window.location.href = "/";
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 font-medium transition-colors"
                   >
