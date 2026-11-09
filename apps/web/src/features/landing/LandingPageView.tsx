@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowRight,
   Sparkles,
@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 import { HeroCanvas } from "./components/HeroCanvas";
 import { KineticMarquee } from "./components/KineticMarquee";
-import { InteractiveRealmStage } from "./components/InteractiveRealmStage";
+import { DualRealmWipeStage } from "./components/DualRealmWipeStage";
+import { TiltCard } from "./components/TiltCard";
+import { CustomCursor } from "./components/CustomCursor";
 
 interface LandingPageViewProps {
   onEnterApp: (realm?: "socializing" | "founders") => void;
@@ -33,6 +35,18 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onOpenPayment,
 }) => {
   const [activeInteractiveWorld, setActiveInteractiveWorld] = useState<"socializing" | "founders">("socializing");
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollProgress(Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100)));
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -43,6 +57,14 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#07080a] text-[#fcfbf9] flex flex-col font-sans selection:bg-[#e5a855] selection:text-[#07080a] overflow-x-hidden antialiased">
+      {/* Butterflow-Style Interactive Custom Trailing Cursor */}
+      <CustomCursor />
+
+      {/* Real-time Top Scroll Progress Bar */}
+      <div
+        className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 z-[100] transition-all duration-75 ease-out pointer-events-none"
+        style={{ width: `${scrollProgress}%` }}
+      />
       
       {/* ─────────────────────────────────────────────────────────────
           FLOATING BUTTERFLOW-STYLE EDITORIAL HEADER
@@ -252,55 +274,65 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <div className="lg:w-7/12 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Instagram Card */}
-              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
-                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">01 · Personal Silo</div>
-                <h3 className="text-lg font-bold text-white">Instagram</h3>
-                <p className="text-xs text-[#8c887e] leading-relaxed">
-                  Great for weekend café stories and badminton photos, but completely useless for recruiting engineers, finding a co-founder, or pitching angels.
-                </p>
-              </div>
+              <TiltCard glowColor="subtle" maxTilt={8} dataCursor="EXPAND">
+                <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5 h-full">
+                  <div className="text-xs font-mono text-red-400 uppercase tracking-wider">01 · Personal Silo</div>
+                  <h3 className="text-lg font-bold text-white">Instagram</h3>
+                  <p className="text-xs text-[#8c887e] leading-relaxed">
+                    Great for weekend café stories and badminton photos, but completely useless for recruiting engineers, finding a co-founder, or pitching angels.
+                  </p>
+                </div>
+              </TiltCard>
 
               {/* LinkedIn Card */}
-              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
-                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">02 · Corporate Mask</div>
-                <h3 className="text-lg font-bold text-white">LinkedIn</h3>
-                <p className="text-xs text-[#8c887e] leading-relaxed">
-                  Choked with performative "I am thrilled to announce" fake cringe, rigid corporate resumes, and zero authentic human connection.
-                </p>
-              </div>
+              <TiltCard glowColor="subtle" maxTilt={8} dataCursor="EXPAND">
+                <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5 h-full">
+                  <div className="text-xs font-mono text-red-400 uppercase tracking-wider">02 · Corporate Mask</div>
+                  <h3 className="text-lg font-bold text-white">LinkedIn</h3>
+                  <p className="text-xs text-[#8c887e] leading-relaxed">
+                    Choked with performative "I am thrilled to announce" fake cringe, rigid corporate resumes, and zero authentic human connection.
+                  </p>
+                </div>
+              </TiltCard>
 
               {/* Calendly Card */}
-              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
-                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">03 · Expensive Booking</div>
-                <h3 className="text-lg font-bold text-white">Calendly & Tools</h3>
-                <p className="text-xs text-[#8c887e] leading-relaxed">
-                  Paying $15/month just to share a booking link, while juggling multiple calendar tabs and broken timezone converters.
-                </p>
-              </div>
+              <TiltCard glowColor="subtle" maxTilt={8} dataCursor="EXPAND">
+                <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5 h-full">
+                  <div className="text-xs font-mono text-red-400 uppercase tracking-wider">03 · Expensive Booking</div>
+                  <h3 className="text-lg font-bold text-white">Calendly & Tools</h3>
+                  <p className="text-xs text-[#8c887e] leading-relaxed">
+                    Paying $15/month just to share a booking link, while juggling multiple calendar tabs and broken timezone converters.
+                  </p>
+                </div>
+              </TiltCard>
 
               {/* WhatsApp Card */}
-              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
-                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">04 · Privacy Leakage</div>
-                <h3 className="text-lg font-bold text-white">WhatsApp / DMs</h3>
-                <p className="text-xs text-[#8c887e] leading-relaxed">
-                  Forced to give out your personal phone number to recruiters, candidates, and strangers, exposing your personal life to everyone.
-                </p>
-              </div>
+              <TiltCard glowColor="subtle" maxTilt={8} dataCursor="EXPAND">
+                <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5 h-full">
+                  <div className="text-xs font-mono text-red-400 uppercase tracking-wider">04 · Privacy Leakage</div>
+                  <h3 className="text-lg font-bold text-white">WhatsApp / DMs</h3>
+                  <p className="text-xs text-[#8c887e] leading-relaxed">
+                    Forced to give out your personal phone number to recruiters, candidates, and strangers, exposing your personal life to everyone.
+                  </p>
+                </div>
+              </TiltCard>
             </div>
 
             {/* The Balaga Resolution */}
-            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/30 via-[#181510] to-[#12141c] border border-amber-500/30 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-mono text-[#e5a855] font-semibold">
-                <Sparkles className="w-4 h-4 text-[#e5a855]" />
-                <span>THE BALAGA SOVEREIGN ALTERNATIVE</span>
+            <TiltCard glowColor="amber" maxTilt={6} dataCursor="SOVEREIGN">
+              <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/30 via-[#181510] to-[#12141c] border border-amber-500/30 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#e5a855] font-semibold">
+                  <Sparkles className="w-4 h-4 text-[#e5a855]" />
+                  <span>THE BALAGA SOVEREIGN ALTERNATIVE</span>
+                </div>
+                <h3 className="text-xl font-bold text-white">
+                  One Master Account. Zero Data Bleed. Two Parallel Realms.
+                </h3>
+                <p className="text-xs sm:text-sm text-[#a8a498] leading-relaxed">
+                  Log in once at <strong>balaga.online</strong>. Enjoy authentic cultural life, vernacular reels, and friends on one side. Switch instantly to recruit talent, book mentor office hours, and launch products on the other.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-white">
-                One Master Account. Zero Data Bleed. Two Parallel Realms.
-              </h3>
-              <p className="text-xs sm:text-sm text-[#a8a498] leading-relaxed">
-                Log in once at <strong>balaga.online</strong>. Enjoy authentic cultural life, vernacular reels, and friends on one side. Switch instantly to recruit talent, book mentor office hours, and launch products on the other.
-              </p>
-            </div>
+            </TiltCard>
           </div>
         </div>
       </section>
@@ -320,12 +352,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </span>
           </h2>
           <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
-            Switch state below to experience how your profile, navigation, messaging, and database queries dynamically shift between the two realms without cross-contamination.
+            Drag the golden cursor stage below to scrub between Socializing and Founders realms in real time. Experience dual sovereign views without context corruption.
           </p>
         </div>
 
-        {/* Live Interactive Transformation Stage */}
-        <InteractiveRealmStage onEnterApp={onEnterApp} />
+        {/* Live Butterflow-Style Interactive Realm Scrub Stage */}
+        <DualRealmWipeStage onEnterApp={onEnterApp} />
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
@@ -363,48 +395,56 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           {/* Right Column: 4 Pillars */}
           <div className="lg:w-7/12 space-y-4">
             {/* Pillar 1 */}
-            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
-                <Languages className="w-5 h-5" />
+            <TiltCard glowColor="violet" maxTilt={6} dataCursor="VERNACULAR">
+              <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                  <Languages className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">IndicTrans2 Vernacular Engine</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Seamless script auto-detection across 10+ Indian languages (Kannada, Hindi, Tamil, Telugu, Marathi, Bengali). Read vernacular posts with 1-click contextual translation and Web Speech voice playback.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">IndicTrans2 Vernacular Engine</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Seamless script auto-detection across 10+ Indian languages (Kannada, Hindi, Tamil, Telugu, Marathi, Bengali). Read vernacular posts with 1-click contextual translation and Web Speech voice playback.
-              </p>
-            </div>
+            </TiltCard>
 
             {/* Pillar 2 */}
-            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
-                <Layers className="w-5 h-5" />
+            <TiltCard glowColor="violet" maxTilt={6} dataCursor="GALLERY">
+              <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Hey.xyz Multi-Media & Lightbox</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Responsive 4-quad photo galleries, high-frame-rate vernacular video reels, and full-screen lightbox viewing. Zero compression degradation so your photography looks pristine.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Hey.xyz Multi-Media & Lightbox</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Responsive 4-quad photo galleries, high-frame-rate vernacular video reels, and full-screen lightbox viewing. Zero compression degradation so your photography looks pristine.
-              </p>
-            </div>
+            </TiltCard>
 
             {/* Pillar 3 */}
-            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
-                <Users className="w-5 h-5" />
+            <TiltCard glowColor="violet" maxTilt={6} dataCursor="CIRCLES">
+              <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Local Circles & Flash Hangouts</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Connect over badminton matches, weekend hiking, book clubs, and film screenings in Indiranagar, Koramangala, Bandra, and beyond with zero algorithmic friction.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Local Circles & Flash Hangouts</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Connect over badminton matches, weekend hiking, book clubs, and film screenings in Indiranagar, Koramangala, Bandra, and beyond with zero algorithmic friction.
-              </p>
-            </div>
+            </TiltCard>
 
             {/* Pillar 4 */}
-            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
-                <MessageSquare className="w-5 h-5" />
+            <TiltCard glowColor="violet" maxTilt={6} dataCursor="MESSAGES">
+              <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Chatwoot Real-Time Messenger</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Encrypted peer messaging with live presence dots, double blue read receipts, and hover emoji reaction docks without ever exposing your private phone number.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Chatwoot Real-Time Messenger</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Encrypted peer messaging with live presence dots, double blue read receipts, and hover emoji reaction docks without ever exposing your private phone number.
-              </p>
-            </div>
+            </TiltCard>
           </div>
         </div>
       </section>
@@ -444,48 +484,56 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           {/* Right Column: 4 Pillars */}
           <div className="lg:w-7/12 space-y-4">
             {/* Pillar 1 */}
-            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
-                <Layers className="w-5 h-5" />
+            <TiltCard glowColor="emerald" maxTilt={6} dataCursor="KANBAN">
+              <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Twenty CRM Kanban ATS</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Visual 6-stage recruiter hiring pipeline (Applied → Screening → Interview → Technical → Offer → Hired). Drag and drop candidate applications directly without paying $300/mo for Ashby.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Twenty CRM Kanban ATS</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Visual 6-stage recruiter hiring pipeline (Applied → Screening → Interview → Technical → Offer → Hired). Drag and drop candidate applications directly without paying $300/mo for Ashby.
-              </p>
-            </div>
+            </TiltCard>
 
             {/* Pillar 2 */}
-            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
-                <Calendar className="w-5 h-5" />
+            <TiltCard glowColor="emerald" maxTilt={6} dataCursor="SCHEDULER">
+              <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Cal.com Schedulers (Asia/Kolkata)</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Native 30-minute 1-on-1 office hour bookings for mentors and angel investors with automated timezone calibration, calendar sync, and confirmation reminders.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Cal.com Schedulers (Asia/Kolkata)</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Native 30-minute 1-on-1 office hour bookings for mentors and angel investors with automated timezone calibration, calendar sync, and confirmation reminders.
-              </p>
-            </div>
+            </TiltCard>
 
             {/* Pillar 3 */}
-            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
-                <Share2 className="w-5 h-5" />
+            <TiltCard glowColor="emerald" maxTilt={6} dataCursor="LAUNCHPAD">
+              <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Dub.co Launchpad & Attribution</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Generate custom short-links (<code className="text-emerald-400 font-mono">balaga.link/p/...</code>) for demo day. Track referrer sources, unique visitors, and conversion metrics in real time.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Dub.co Launchpad & Attribution</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Generate custom short-links (<code className="text-emerald-400 font-mono">balaga.link/p/...</code>) for demo day. Track referrer sources, unique visitors, and conversion metrics in real time.
-              </p>
-            </div>
+            </TiltCard>
 
             {/* Pillar 4 */}
-            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
-                <Zap className="w-5 h-5" />
+            <TiltCard glowColor="emerald" maxTilt={6} dataCursor="SQUAD">
+              <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Hackathon Squad Matchmaker</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Role-locked team cards pairing frontend builders, backend architects, and AI researchers into hackathon squads in seconds.
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-white">Hackathon Squad Matchmaker</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Role-locked team cards pairing frontend builders, backend architects, and AI researchers into hackathon squads in seconds.
-              </p>
-            </div>
+            </TiltCard>
           </div>
         </div>
       </section>
@@ -574,76 +622,80 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
           {/* Privacy Box 1 */}
-          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-5 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="w-10 h-10 rounded-2xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                <ShieldCheck className="w-5 h-5" />
+          <TiltCard glowColor="amber" maxTilt={5} dataCursor="SECURITY">
+            <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-5 flex flex-col justify-between h-full">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-2xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Row-Level Security (RLS)</h3>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Every query is stamped with the session's active realm. Postgres rejects any request attempting to query across world boundaries, guaranteeing zero memory or cache bleed.
+                </p>
+                <ul className="space-y-2 text-xs text-[#a09c91] pt-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>Strictly partitioned database tables</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>Independent handle namespaces (@user_social vs @user_builder)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>No cross-pollinated activity feeds</span>
+                  </li>
+                </ul>
               </div>
-              <h3 className="text-xl font-bold text-white">Row-Level Security (RLS)</h3>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Every query is stamped with the session's active realm. Postgres rejects any request attempting to query across world boundaries, guaranteeing zero memory or cache bleed.
-              </p>
-              <ul className="space-y-2 text-xs text-[#a09c91] pt-2">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Strictly partitioned database tables</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Independent handle namespaces (@user_social vs @user_builder)</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>No cross-pollinated activity feeds</span>
-                </li>
-              </ul>
-            </div>
 
-            <div className="p-3 rounded-xl bg-[#08090d] border border-white/5 font-mono text-[10px] text-emerald-400 flex items-center gap-2 mt-4">
-              <Lock className="w-3.5 h-3.5" />
-              <span>AES-256 session encryption with Supabase Auth</span>
+              <div className="p-3 rounded-xl bg-[#08090d] border border-white/5 font-mono text-[10px] text-emerald-400 flex items-center gap-2 mt-4">
+                <Lock className="w-3.5 h-3.5" />
+                <span>AES-256 session encryption with Supabase Auth</span>
+              </div>
             </div>
-          </div>
+          </TiltCard>
 
           {/* Privacy Box 2: Zero-Fee UPI Payment Spotlight */}
-          <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0e1017] via-[#10171a] to-[#0c1412] border border-emerald-500/30 space-y-5 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <QrCode className="w-5 h-5" />
+          <TiltCard glowColor="emerald" maxTilt={5} dataCursor="UPI">
+            <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0e1017] via-[#10171a] to-[#0c1412] border border-emerald-500/30 space-y-5 flex flex-col justify-between h-full">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white">Zero-Fee UPI Gateway</h3>
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
+                    0% MDR
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                  Direct NPCI bank-to-bank settlement (<code className="text-emerald-400 font-mono">balaga@okhdfcbank</code>). Unlock Creator, Founder, and Annual passes with instant QR generation and 1-tap mobile deep links.
+                </p>
+                <ul className="space-y-2 text-xs text-[#a09c91] pt-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>₹0 commission to foreign payment aggregators</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>Direct settlement to your bank account</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>Google Pay, PhonePe, and Paytm 1-tap intent</span>
+                  </li>
+                </ul>
               </div>
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-white">Zero-Fee UPI Gateway</h3>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  0% MDR
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
-                Direct NPCI bank-to-bank settlement (<code className="text-emerald-400 font-mono">balaga@okhdfcbank</code>). Unlock Creator, Founder, and Annual passes with instant QR generation and 1-tap mobile deep links.
-              </p>
-              <ul className="space-y-2 text-xs text-[#a09c91] pt-2">
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>₹0 commission to foreign payment aggregators</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Direct settlement to your bank account</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Google Pay, PhonePe, and Paytm 1-tap intent</span>
-                </li>
-              </ul>
-            </div>
 
-            <button
-              onClick={onOpenPayment}
-              className="w-full mt-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-[#07080a] text-xs font-black transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
-            >
-              <QrCode className="w-4 h-4" />
-              <span>Launch Zero-Fee UPI Payment Gateway</span>
-            </button>
-          </div>
+              <button
+                onClick={onOpenPayment}
+                className="w-full mt-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-[#07080a] text-xs font-black transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              >
+                <QrCode className="w-4 h-4" />
+                <span>Launch Zero-Fee UPI Payment Gateway</span>
+              </button>
+            </div>
+          </TiltCard>
         </div>
       </section>
 
@@ -665,31 +717,37 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Step 1 */}
-          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative">
-            <span className="text-4xl font-mono font-light text-[#e5a855]/40">01</span>
-            <h3 className="text-lg font-bold text-white">Claim Your Sovereign ID</h3>
-            <p className="text-xs text-[#8c887e] leading-relaxed">
-              Create your master account with email or jump straight in with 1-click verified demo profiles. One master password secures your entire digital footprint.
-            </p>
-          </div>
+          <TiltCard glowColor="amber" maxTilt={6} dataCursor="STEP 01">
+            <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative h-full">
+              <span className="text-4xl font-mono font-light text-[#e5a855]/40">01</span>
+              <h3 className="text-lg font-bold text-white">Claim Your Sovereign ID</h3>
+              <p className="text-xs text-[#8c887e] leading-relaxed">
+                Create your master account with email or jump straight in with 1-click verified demo profiles. One master password secures your entire digital footprint.
+              </p>
+            </div>
+          </TiltCard>
 
           {/* Step 2 */}
-          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative">
-            <span className="text-4xl font-mono font-light text-[#e5a855]/40">02</span>
-            <h3 className="text-lg font-bold text-white">Initialize Twin Personas</h3>
-            <p className="text-xs text-[#8c887e] leading-relaxed">
-              Curate your creative social handle for friends and vernacular stories. Then craft your verified builder portfolio for co-founders and investors.
-            </p>
-          </div>
+          <TiltCard glowColor="violet" maxTilt={6} dataCursor="STEP 02">
+            <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative h-full">
+              <span className="text-4xl font-mono font-light text-violet-400/40">02</span>
+              <h3 className="text-lg font-bold text-white">Initialize Twin Personas</h3>
+              <p className="text-xs text-[#8c887e] leading-relaxed">
+                Curate your creative social handle for friends and vernacular stories. Then craft your verified builder portfolio for co-founders and investors.
+              </p>
+            </div>
+          </TiltCard>
 
           {/* Step 3 */}
-          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative">
-            <span className="text-4xl font-mono font-light text-[#e5a855]/40">03</span>
-            <h3 className="text-lg font-bold text-white">Traverse Realms At Will</h3>
-            <p className="text-xs text-[#8c887e] leading-relaxed">
-              Tap the persistent top-left switcher anytime. Go from reviewing candidate resumes to sharing a weekend photography reel in less than 5 milliseconds.
-            </p>
-          </div>
+          <TiltCard glowColor="emerald" maxTilt={6} dataCursor="STEP 03">
+            <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative h-full">
+              <span className="text-4xl font-mono font-light text-emerald-400/40">03</span>
+              <h3 className="text-lg font-bold text-white">Traverse Realms At Will</h3>
+              <p className="text-xs text-[#8c887e] leading-relaxed">
+                Tap the persistent top-left switcher anytime. Go from reviewing candidate resumes to sharing a weekend photography reel in less than 5 milliseconds.
+              </p>
+            </div>
+          </TiltCard>
         </div>
       </section>
 
