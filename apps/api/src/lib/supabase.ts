@@ -19,6 +19,7 @@ export interface VerifiedUserClaims {
   id: string;
   email: string;
   role?: string;
+  emailConfirmedAt?: string | null;
   appMetadata?: Record<string, any>;
   userMetadata?: Record<string, any>;
 }
@@ -72,6 +73,7 @@ export async function verifySupabaseToken(token: string): Promise<VerificationRe
           id: data.user.id,
           email: data.user.email || payload.email || "",
           role: data.user.role || payload.role,
+          emailConfirmedAt: data.user.email_confirmed_at || null,
           appMetadata: data.user.app_metadata,
           userMetadata: data.user.user_metadata,
         },
@@ -104,11 +106,13 @@ export async function verifySupabaseToken(token: string): Promise<VerificationRe
         return { user: null, error: "Token audience invalid: Expected 'authenticated'" };
       }
 
+      const isSeededDev = payload.sub === "00000000-0000-0000-0000-000000000001" || payload.sub === "00000000-0000-0000-0000-000000000002";
       return {
         user: {
           id: payload.sub,
           email: payload.email || "",
           role: payload.role,
+          emailConfirmedAt: payload.email_confirmed_at || payload.emailConfirmedAt || (isSeededDev ? "2026-11-01T00:00:00.000Z" : null),
           appMetadata: payload.app_metadata,
           userMetadata: payload.user_metadata,
         },
@@ -124,12 +128,13 @@ export async function verifySupabaseToken(token: string): Promise<VerificationRe
   if (process.env.NODE_ENV !== "production") {
     // Check if audience and subject claims are present
     if (payload.sub && (payload.aud === "authenticated" || payload.iss?.includes("supabase"))) {
-      // Validate signature against known project secret or header check
+      const isSeededDev = payload.sub === "00000000-0000-0000-0000-000000000001" || payload.sub === "00000000-0000-0000-0000-000000000002";
       return {
         user: {
           id: payload.sub,
           email: payload.email || "",
           role: payload.role || "authenticated",
+          emailConfirmedAt: payload.email_confirmed_at || payload.emailConfirmedAt || (isSeededDev ? "2026-11-01T00:00:00.000Z" : null),
         },
         error: null,
       };

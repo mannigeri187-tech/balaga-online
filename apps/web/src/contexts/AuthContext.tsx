@@ -9,39 +9,17 @@ interface AuthContextType {
   session: Session | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  isEmailVerified: boolean;
   isLoading: boolean;
   logout: () => Promise<void>;
-  loginWithEmail: (email: string, password: string) => Promise<{ error: any }>;
-  signUpWithEmail: (email: string, password: string) => Promise<{ error: any }>;
-  loginAsDemo: (profile: "aarav" | "priya") => void;
+  loginWithEmail: (email: string, password: string) => Promise<{ error: any; user?: User | null; unverified?: boolean }>;
+  signUpWithEmail: (email: string, password: string, realm?: "socializing" | "founders") => Promise<{ error: any; user?: User | null; needsVerification?: boolean }>;
+  resendVerificationEmail: (email: string) => Promise<{ error: any }>;
+  resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
+  updateUserPassword: (password: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const DEMO_ACCOUNTS: Record<"aarav" | "priya", Account> = {
-  aarav: {
-    id: "00000000-0000-0000-0000-000000000001",
-    email: "aarav@balaga.online",
-    is18PlusVerified: true,
-    ageVerifiedAt: new Date().toISOString(),
-    subscriptionTier: "premium",
-    isSuspended: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  priya: {
-    id: "00000000-0000-0000-0000-000000000002",
-    email: "priya@balaga.online",
-    is18PlusVerified: true,
-    ageVerifiedAt: new Date().toISOString(),
-    subscriptionTier: "premium",
-    isSuspended: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-};
-
-const DEFAULT_DEV_ACCOUNT: Account = DEMO_ACCOUNTS.aarav;
 
 function mapUserToAccount(user: User): Account {
   return {
@@ -50,6 +28,7 @@ function mapUserToAccount(user: User): Account {
     phone: user.phone || null,
     is18PlusVerified: user.user_metadata?.is18PlusVerified ?? true,
     ageVerifiedAt: user.user_metadata?.ageVerifiedAt || new Date().toISOString(),
+    emailVerifiedAt: user.email_confirmed_at || null,
     subscriptionTier: user.user_metadata?.subscriptionTier || "premium",
     isSuspended: false,
     createdAt: user.created_at,
@@ -60,40 +39,48 @@ function mapUserToAccount(user: User): Account {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [account, setAccount] = useState<Account | null>(() => {
-    const savedDemo = localStorage.getItem("balaga_demo_account") as "aarav" | "priya" | null;
-    if (savedDemo && DEMO_ACCOUNTS[savedDemo]) {
-      return DEMO_ACCOUNTS[savedDemo];
-    }
-    return import.meta.env.DEV ? DEFAULT_DEV_ACCOUNT : null;
-  });
+  const [account, setAccount] = useState<Account | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Clear legacy demo keys on mount
   useEffect(() => {
-    // 1. Initial session check
+    try {
+      localStorage.removeItem("balaga_demo_account");
+    } catch {
+      // storage unavailable
+    }
+  }, []);
+
+  useEffect(() => {
+    // 1. Initial authoritative session check from Supabase Auth
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      if (initialSession?.user) {
+      if (initialSession?.user?.email_confirmed_at) {
+        setSession(initialSession);
         setUser(initialSession.user);
         setAccount(mapUserToAccount(initialSession.user));
       } else {
-        // Fallback to default dev account only in local development
-        setAccount(import.meta.env.DEV ? DEFAULT_DEV_ACCOUNT : null);
+        // Unverified or absent session -> enforce strict unauthenticated state
+        setSession(null);
+        setUser(initialSession?.user || null);
+        setAccount(null);
       }
       setIsLoading(false);
     }).catch(() => {
-      setAccount(import.meta.env.DEV ? DEFAULT_DEV_ACCOUNT : null);
+      setSession(null);
+      setUser(null);
+      setAccount(null);
       setIsLoading(false);
     });
 
     // 2. Real-time auth state subscription
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      setSession(currentSession);
-      if (currentSession?.user) {
+      if (currentSession?.user?.email_confirmed_at) {
+        setSession(currentSession);
         setUser(currentSession.user);
         setAccount(mapUserToAccount(currentSession.user));
       } else {
-        setUser(null);
+        setSession(null);
+        setUser(currentSession?.user || null);
         setAccount(null);
       }
       setIsLoading(false);
@@ -106,35 +93,141 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithEmail = async (email: string, password: string) => {
     setIsLoading(true);
-    const result = await supabase.auth.signInWithPassword({ email, password });
-    setIsLoading(false);
-    return { error: result.error };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (error) {
+        const errorMsg = error.message?.toLowerCase() || "";
+        const isUnverified = errorMsg.includes("email not confirmed") ||
+                             errorMsg.includes("not verified") ||
+                             errorMsg.includes("confirmation");
+        if (isUnverified) {
+          return {
+            error: { message: "Your email address has not been confirmed yet. Please verify your inbox." },
+            unverified: true,
+          };
+        }
+        return { error };
+      }
+
+      // Check authoritative verified status (email_confirmed_at)
+      if (!data.user?.email_confirmed_at) {
+        // Immediately terminate unverified session
+        await supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+        setAccount(null);
+        return {
+          error: { message: "Email not verified. A confirmation link was sent to your email." },
+          user: data.user,
+          unverified: true,
+        };
+      }
+
+      setSession(data.session);
+      setUser(data.user);
+      setAccount(mapUserToAccount(data.user));
+      return { error: null, user: data.user };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const signUpWithEmail = async (email: string, password: string) => {
+  const signUpWithEmail = async (
+    email: string,
+    password: string,
+    realm: "socializing" | "founders" = "socializing"
+  ) => {
     setIsLoading(true);
-    const result = await supabase.auth.signUp({ email, password });
-    setIsLoading(false);
-    return { error: result.error };
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/` : undefined;
+
+      const { data, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          data: {
+            initial_realm: realm,
+            is18PlusVerified: true,
+            ageVerifiedAt: new Date().toISOString(),
+          },
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      // Authoritative check: unconfirmed accounts MUST require email confirmation
+      const isConfirmed = Boolean(data.user?.email_confirmed_at);
+      if (!isConfirmed) {
+        // Enforce: unverified users cannot have active application sessions
+        setSession(null);
+        setUser(data.user);
+        setAccount(null);
+        return { error: null, user: data.user, needsVerification: true };
+      }
+
+      // If project has email confirmations disabled in dev, map account
+      setSession(data.session);
+      setUser(data.user);
+      setAccount(data.user ? mapUserToAccount(data.user) : null);
+      return { error: null, user: data.user, needsVerification: false };
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loginAsDemo = (profile: "aarav" | "priya") => {
-    const chosen = DEMO_ACCOUNTS[profile];
-    setAccount(chosen);
-    localStorage.setItem("balaga_demo_account", profile);
+  const resendVerificationEmail = async (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/` : undefined;
+
+    return await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: redirectUrl,
+      },
+    });
+  };
+
+  const resetPasswordForEmail = async (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/?auth_flow=reset_password` : undefined;
+
+    return await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: redirectUrl,
+    });
+  };
+
+  const updateUserPassword = async (newPassword: string) => {
+    return await supabase.auth.updateUser({ password: newPassword });
   };
 
   const logout = async () => {
     try {
       await supabase.auth.signOut();
     } catch {
-      // Continue cleanup even if network fails
+      // Continue cleanup
     }
-    localStorage.removeItem("balaga_demo_account");
+    try {
+      localStorage.removeItem("balaga_demo_account");
+      localStorage.removeItem("balaga_active_world");
+    } catch {
+      // ignore storage errors
+    }
     setSession(null);
     setUser(null);
     setAccount(null);
   };
+
+  const isAuthenticated = Boolean(session && user && user.email_confirmed_at);
+  const isEmailVerified = Boolean(user && user.email_confirmed_at);
 
   return (
     <AuthContext.Provider
@@ -143,12 +236,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         session,
         accessToken: session?.access_token || null,
-        isAuthenticated: !!account,
+        isAuthenticated,
+        isEmailVerified,
         isLoading,
         logout,
         loginWithEmail,
         signUpWithEmail,
-        loginAsDemo,
+        resendVerificationEmail,
+        resetPasswordForEmail,
+        updateUserPassword,
       }}
     >
       {children}

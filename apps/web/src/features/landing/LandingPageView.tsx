@@ -722,7 +722,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               <span className="text-4xl font-mono font-light text-[#e5a855]/40">01</span>
               <h3 className="text-lg font-bold text-white">Claim Your Sovereign ID</h3>
               <p className="text-xs text-[#8c887e] leading-relaxed">
-                Create your master account with email or jump straight in with 1-click verified demo profiles. One master password secures your entire digital footprint.
+                Create your master account with email and verify your address. One master credential secures your entire digital footprint across both realms.
               </p>
             </div>
           </TiltCard>
@@ -770,7 +770,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </h2>
 
           <p className="text-sm sm:text-base text-[#a09c91] max-w-xl mx-auto leading-relaxed">
-            Join thousands of creators, builders, and community visionaries already active on India's premier sovereign dual-realm network.
+            Join creators, builders, and community visionaries already active on Balaga's sovereign dual-realm network.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">

@@ -27,22 +27,6 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
   // 1. Check for missing Authorization header
   if (!authHeader) {
-    // Development / Test only mock fallback (strictly disabled in production)
-    const isProd = process.env.NODE_ENV === "production";
-    const allowDevMock = !isProd && (process.env.ENABLE_DEV_MOCK_AUTH === "true" || req.headers["x-mock-user"] === "true");
-
-    if (allowDevMock) {
-      const mockId = (req.headers["x-mock-account-id"] as string) || "00000000-0000-0000-0000-000000000001";
-      const account = accountsStore.get(mockId);
-      req.user = {
-        id: mockId,
-        email: account?.email || (mockId.endsWith("2") ? "priya.art@platform.local" : "founder.dev@platform.local"),
-        is18PlusVerified: account?.is18PlusVerified ?? true,
-        subscriptionTier: account?.subscriptionTier || "free",
-      };
-      return next();
-    }
-
     return res.status(401).json({
       error: "Unauthorized: Missing Authorization header. Real Supabase bearer token required.",
     });
@@ -72,7 +56,15 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       });
     }
 
-    // 4. Derive identity strictly from validated claims (never from request body or client headers!)
+    // 4. Enforce mandatory email verification (authoritative email_confirmed_at claim)
+    if (!verifiedUser.emailConfirmedAt) {
+      return res.status(403).json({
+        error: "email_not_verified",
+        message: "Forbidden: Please verify your email address before accessing this protected resource.",
+      });
+    }
+
+    // 5. Derive identity strictly from validated claims (never from request body or client headers!)
     const validatedAccountId = verifiedUser.id;
     const account = accountsStore.get(validatedAccountId);
 
