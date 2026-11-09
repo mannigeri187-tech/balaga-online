@@ -1,5 +1,8 @@
 name = "balaga-online"
+main = "worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-assets = { directory = "apps/web/dist" }
-# Cloudflare Workers production build trigger
+
+[assets]
+directory = "apps/web/dist"
+binding = "ASSETS"
