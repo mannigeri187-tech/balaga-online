@@ -37,18 +37,14 @@ import { LandingPageView } from "../../features/landing/LandingPageView";
 import { LoginModal } from "../../features/landing/LoginModal";
 import { UpiPaymentModal } from "../../features/landing/UpiPaymentModal";
 
-export const WorldLayout: React.FC = () => {
+interface WorldLayoutProps {
+  onNavigateToLanding?: () => void;
+}
+
+export const WorldLayout: React.FC<WorldLayoutProps> = ({ onNavigateToLanding }) => {
   const { activeWorld, switchWorld, isLoading } = useWorld();
   const isSocial = activeWorld === WORLDS.SOCIALIZING;
-  const [currentTab, setCurrentTab] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("view") === "landing" || window.location.hash === "#landing") {
-        return "landing";
-      }
-    }
-    return "feed";
-  });
+  const [currentTab, setCurrentTab] = useState<string>("feed");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isIntelligenceModalOpen, setIsIntelligenceModalOpen] = useState(false);
@@ -77,6 +73,14 @@ export const WorldLayout: React.FC = () => {
   }, [activeWorld, isSocial]);
 
   const handleTabChange = (tab: string) => {
+    if (tab === "landing") {
+      if (onNavigateToLanding) {
+        onNavigateToLanding();
+        return;
+      }
+      setCurrentTab("landing");
+      return;
+    }
     if (tab === "ai") {
       setIsIntelligenceModalOpen(true);
       return;

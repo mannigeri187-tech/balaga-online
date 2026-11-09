@@ -18,16 +18,26 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (realm?: "socializing" | "founders") => void;
+  initialMode?: "login" | "signup";
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialMode = "login",
 }) => {
   const { loginWithEmail, signUpWithEmail, loginAsDemo } = useAuth();
 
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+    }
+  }, [isOpen, initialMode]);
   const [selectedRealm, setSelectedRealm] = useState<"socializing" | "founders">("socializing");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -1,19 +1,29 @@
 import React, { useState } from "react";
 import {
   ArrowRight,
-  Heart,
-  MessageSquare,
-  Rocket,
+  Sparkles,
+  ShieldCheck,
   Layers,
   QrCode,
+  Lock,
+  Heart,
+  Rocket,
+  CheckCircle2,
+  Users,
   Languages,
   Calendar,
   Share2,
+  MessageSquare,
+  Zap,
+  Check,
 } from "lucide-react";
+import { HeroCanvas } from "./components/HeroCanvas";
+import { KineticMarquee } from "./components/KineticMarquee";
+import { InteractiveRealmStage } from "./components/InteractiveRealmStage";
 
 interface LandingPageViewProps {
   onEnterApp: (realm?: "socializing" | "founders") => void;
-  onOpenLogin: () => void;
+  onOpenLogin: (mode?: "login" | "signup") => void;
   onOpenPayment: () => void;
 }
 
@@ -22,330 +32,842 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onOpenLogin,
   onOpenPayment,
 }) => {
-  const [activePreviewRealm, setActivePreviewRealm] = useState<"socializing" | "founders">("socializing");
+  const [activeInteractiveWorld, setActiveInteractiveWorld] = useState<"socializing" | "founders">("socializing");
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
+    <div className="min-h-screen bg-[#07080a] text-[#fcfbf9] flex flex-col font-sans selection:bg-[#e5a855] selection:text-[#07080a] overflow-x-hidden antialiased">
       
-      {/* NAVIGATION BAR */}
-      <nav className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl px-4 sm:px-8 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-emerald-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/10">
-            B
+      {/* ─────────────────────────────────────────────────────────────
+          FLOATING BUTTERFLOW-STYLE EDITORIAL HEADER
+      ───────────────────────────────────────────────────────────── */}
+      <header className="sticky top-4 z-50 px-4 sm:px-6 w-full max-w-7xl mx-auto">
+        <nav className="border border-white/10 bg-[#0c0d12]/80 backdrop-blur-2xl rounded-full px-5 py-3 flex items-center justify-between shadow-2xl shadow-black/80 transition-all">
+          {/* Brand Logo & Tag */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => scrollToSection("hero")}
+              className="flex items-center gap-3 group text-left"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#e5a855] via-[#d97706] to-[#b45309] flex items-center justify-center font-black text-[#07080a] text-sm shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                B
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-extrabold text-base tracking-tight text-white group-hover:text-amber-300 transition-colors">
+                  Balaga
+                </span>
+                <span className="hidden sm:inline-block text-[9px] font-mono uppercase tracking-widest text-amber-400/90 border border-amber-400/30 px-2 py-0.5 rounded-full bg-amber-950/30">
+                  balaga.online
+                </span>
+              </div>
+            </button>
           </div>
-          <div>
-            <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
-              Balaga
-              <span className="text-[10px] font-mono font-normal px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                balaga.online
-              </span>
-            </span>
+
+          {/* Navigation Anchors */}
+          <div className="hidden lg:flex items-center gap-7 text-xs font-medium text-[#a39f93]">
+            <button onClick={() => scrollToSection("problem")} className="hover:text-white transition">
+              The Split
+            </button>
+            <button onClick={() => scrollToSection("transformation")} className="hover:text-white transition">
+              Bifurcation
+            </button>
+            <button onClick={() => scrollToSection("social-realm")} className="hover:text-white transition">
+              Socializing
+            </button>
+            <button onClick={() => scrollToSection("founders-realm")} className="hover:text-white transition">
+              Founders
+            </button>
+            <button onClick={() => scrollToSection("zero-bleed")} className="hover:text-white transition">
+              Zero-Bleed Privacy
+            </button>
+            <button onClick={() => scrollToSection("how-it-works")} className="hover:text-white transition">
+              How it Works
+            </button>
           </div>
+
+          {/* Action CTAs */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onOpenPayment}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#161822] hover:bg-[#1f2230] text-[#ded9cd] border border-white/10 text-xs font-medium transition"
+              title="Zero-MDR Direct UPI Settlement"
+            >
+              <QrCode className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Zero-Fee UPI</span>
+            </button>
+
+            <button
+              onClick={() => onOpenLogin("login")}
+              className="px-4 py-1.5 rounded-full bg-[#161822] hover:bg-[#1f2230] text-[#fcfbf9] border border-white/10 text-xs font-semibold transition"
+            >
+              Log In
+            </button>
+
+            <button
+              onClick={() => onOpenLogin("signup")}
+              className="px-4 sm:px-5 py-1.5 rounded-full bg-gradient-to-r from-[#e5a855] to-[#d97706] hover:from-[#f5b865] hover:to-[#e68716] text-[#07080a] text-xs font-bold transition shadow-lg shadow-amber-500/20 flex items-center gap-1.5 group"
+            >
+              <span>Join Balaga</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 1: CINEMATIC HERO
+      ───────────────────────────────────────────────────────────── */}
+      <section id="hero" className="relative pt-16 sm:pt-24 pb-24 sm:pb-32 px-4 sm:px-8 max-w-6xl mx-auto flex flex-col items-center text-center overflow-hidden">
+        {/* Generative ambient canvas */}
+        <HeroCanvas />
+
+        {/* Ambient Top Glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-violet-600/10 via-amber-500/10 to-emerald-500/10 blur-[130px] pointer-events-none rounded-full" />
+
+        {/* Status Badge */}
+        <div className="relative z-10 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#11131a]/90 border border-white/10 text-xs text-[#a09c91] mb-8 shadow-inner backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-mono text-[11px] uppercase tracking-wider text-white">Sovereign Dual-Realm Architecture</span>
+          <span className="text-white/20">|</span>
+          <span className="text-[#e5a855] font-semibold">100% Zero Data Leakage</span>
         </div>
 
-        {/* Center Navigation Links */}
-        <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-400">
-          <a href="#dual-realms" className="hover:text-white transition">Dual Realms</a>
-          <a href="#features" className="hover:text-white transition">Features</a>
-          <a href="#payments" className="hover:text-white transition">Zero-Fee UPI</a>
-          <a href="#architecture" className="hover:text-white transition">₹0 Dev Stack</a>
+        {/* Grand Hero Typography */}
+        <div className="relative z-10 max-w-5xl">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tight text-white leading-[0.92]">
+            Two Worlds. <br />
+            <span className="font-serif italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e5a855] via-[#f7cb88] to-[#e5a855]">
+              One Identity.
+            </span>{" "}
+            <br />
+            <span className="text-white">Infinite Possibilities.</span>
+          </h1>
         </div>
 
-        {/* Right Action Buttons */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={onOpenPayment}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-semibold transition"
-          >
-            <QrCode className="w-3.5 h-3.5 text-emerald-400" />
-            <span>UPI Payment</span>
-          </button>
+        {/* Subtitle Statement */}
+        <p className="relative z-10 mt-8 text-sm sm:text-base md:text-lg text-[#a8a498] max-w-2xl leading-relaxed font-light">
+          India's sovereign network uniting authentic vernacular culture, local circles, and regional stories with an elite startup incubator, Twenty CRM Kanban hiring, and 0% commission UPI payments.
+        </p>
 
+        {/* Hero CTAs */}
+        <div className="relative z-10 mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           <button
-            onClick={onOpenLogin}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-bold transition shadow-sm"
+            onClick={() => onOpenLogin("signup")}
+            className="px-7 py-3.5 rounded-full bg-gradient-to-r from-[#e5a855] via-[#d97706] to-[#b45309] hover:from-[#f5b865] hover:to-[#c66307] text-[#07080a] text-xs sm:text-sm font-black transition shadow-xl shadow-amber-500/25 flex items-center gap-2 group"
           >
-            Log In
+            <span>Join Balaga Now</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
 
           <button
             onClick={() => onEnterApp()}
-            className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
+            className="px-6 py-3.5 rounded-full bg-[#141620] hover:bg-[#1d202e] text-[#fcfbf9] border border-white/10 text-xs sm:text-sm font-semibold transition flex items-center gap-2"
           >
-            <span>Launch App</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Launch Live Platform</span>
           </button>
-        </div>
-      </nav>
 
-      {/* HERO SECTION */}
-      <section className="relative px-4 sm:px-8 pt-16 pb-20 overflow-hidden flex flex-col items-center text-center">
-        {/* Glow ambient background elements */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-tr from-violet-600/15 via-emerald-500/15 to-transparent blur-3xl pointer-events-none rounded-full" />
-
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 mb-6 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>India's Premier Dual-Realm Network</span>
-          <span className="text-slate-600">|</span>
-          <span className="text-emerald-400 font-bold">100% Zero Data Leakage</span>
-        </div>
-
-        {/* Hero Title */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white max-w-4xl leading-tight">
-          One Platform.{" "}
-          <span className="bg-gradient-to-r from-violet-400 via-fuchsia-300 to-indigo-400 bg-clip-text text-transparent">
-            Social Life
-          </span>{" "}
-          &{" "}
-          <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-            Startup Ambition
-          </span>
-          .
-        </h1>
-
-        <p className="mt-5 text-sm sm:text-base text-slate-400 max-w-2xl leading-relaxed">
-          Switch effortlessly between community circles, vernacular stories, and Bangalore hangouts — and an elite startup incubator with co-founder matchmaking, Kanban hiring pipelines, and 0% UPI payments.
-        </p>
-
-        {/* Dual Realm Selector Demo */}
-        <div className="mt-8 flex items-center p-1.5 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-xl">
           <button
-            onClick={() => setActivePreviewRealm("socializing")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activePreviewRealm === "socializing"
-                ? "bg-violet-600 text-white shadow-lg shadow-violet-900/40"
-                : "text-slate-400 hover:text-white"
-            }`}
+            onClick={() => scrollToSection("transformation")}
+            className="px-5 py-3.5 rounded-full bg-transparent hover:bg-white/5 text-[#a8a498] hover:text-white text-xs sm:text-sm font-medium transition"
           >
-            <Heart className="w-3.5 h-3.5" />
-            <span>Socializing Realm</span>
-          </button>
-          <button
-            onClick={() => setActivePreviewRealm("founders")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activePreviewRealm === "founders"
-                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <Rocket className="w-3.5 h-3.5" />
-            <span>Founders Realm</span>
+            Explore the 2 Worlds ↓
           </button>
         </div>
 
-        {/* Realm Preview Card */}
-        <div className="mt-8 w-full max-w-3xl p-6 rounded-3xl bg-slate-900/70 backdrop-blur-xl border border-slate-800 shadow-2xl text-left transition-all duration-300">
-          {activePreviewRealm === "socializing" ? (
-            <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">🎨</span>
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Socializing Realm</h3>
-                    <p className="text-xs text-violet-400">Culture, Hobbies, Friends & Bhasha Vernacular</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onEnterApp("socializing")}
-                  className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition flex items-center gap-1 shadow-md shadow-violet-900/30"
-                >
-                  <span>Enter Socializing</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-violet-300">
-                    <Languages className="w-3.5 h-3.5 text-violet-400" />
-                    <span>IndicTrans2 Bhasha</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Auto script detection & 1-click regional translation in Kannada, Hindi, Tamil & Telugu.
-                  </p>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-violet-300">
-                    <Layers className="w-3.5 h-3.5 text-violet-400" />
-                    <span>Hey.xyz Media Feed</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Multi-photo responsive quad grids, full-screen lightbox viewer & zero-latency previews.
-                  </p>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-violet-300">
-                    <MessageSquare className="w-3.5 h-3.5 text-violet-400" />
-                    <span>Chatwoot Real-Time</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Online/away presence indicators, double blue read receipts & hover emoji reactions.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4 animate-in fade-in duration-200">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">🚀</span>
-                  <div>
-                    <h3 className="text-sm font-bold text-white">Founders Realm</h3>
-                    <p className="text-xs text-emerald-400">Startups, Co-Founders, Launchpad & Hiring</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onEnterApp("founders")}
-                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1 shadow-md shadow-emerald-900/30"
-                >
-                  <span>Enter Founders</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                    <Layers className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Twenty CRM Kanban</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Visual 6-stage recruiter hiring pipeline (Applied, Screening, Interview, Offer, Hired).
-                  </p>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Cal.com Schedulers</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Embedded 1-on-1 mentor office hours & investor pitch bookings with Asia/Kolkata slots.
-                  </p>
-                </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                    <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Dub.co Attribution</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Custom short-links (balaga.link/p/...) and deep referral traffic analytics for product launches.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Real-Time Architectural Metrics */}
+        <div className="relative z-10 mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl pt-8 border-t border-white/10">
+          <div className="text-left p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+            <p className="text-2xl sm:text-3xl font-light text-white font-mono">0%</p>
+            <p className="text-[10px] sm:text-[11px] text-[#8c887e] uppercase tracking-wider mt-1">Direct UPI Commission</p>
+          </div>
+          <div className="text-left p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+            <p className="text-2xl sm:text-3xl font-light text-white font-mono">100%</p>
+            <p className="text-[10px] sm:text-[11px] text-[#8c887e] uppercase tracking-wider mt-1">RLS Schema Isolation</p>
+          </div>
+          <div className="text-left p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+            <p className="text-2xl sm:text-3xl font-light text-white font-mono">10+</p>
+            <p className="text-[10px] sm:text-[11px] text-[#8c887e] uppercase tracking-wider mt-1">IndicTrans2 Scripts</p>
+          </div>
+          <div className="text-left p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+            <p className="text-2xl sm:text-3xl font-light text-white font-mono">&lt;5ms</p>
+            <p className="text-[10px] sm:text-[11px] text-[#8c887e] uppercase tracking-wider mt-1">Realm Context Flip</p>
+          </div>
         </div>
       </section>
 
-      {/* ZERO-FEE UPI PAYMENTS SHOWCASE */}
-      <section id="payments" className="px-4 sm:px-8 py-16 bg-slate-900/40 border-y border-slate-800/80">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-3 max-w-lg text-left">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/30">
-              India Zero-MDR Standard
+      {/* KINETIC TICKER RIBBON */}
+      <KineticMarquee
+        items={[
+          "Socializing Realm",
+          "Founders Realm",
+          "Zero Data Bleed",
+          "IndicTrans2 Vernacular",
+          "Twenty CRM Kanban",
+          "Cal.com Schedulers",
+          "0% MDR Direct UPI",
+          "Hey.xyz Quad Media",
+          "Dub.co Attribution",
+        ]}
+        direction="left"
+        variant="amber"
+      />
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 2: THE PROBLEM (FRAGMENTED DIGITAL LIFE)
+      ───────────────────────────────────────────────────────────── */}
+      <section id="problem" className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+          {/* Left Column: Sticky Narrative Header */}
+          <div className="lg:w-5/12 lg:sticky lg:top-28 space-y-4">
+            <span className="font-mono text-xs uppercase tracking-widest text-[#e5a855] font-semibold">
+              [ 02 // THE CONFLICT ]
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white leading-snug">
-              Accept Payments with <span className="text-amber-400">0% Gateway Fees</span>.
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+              The Split-Identity Crisis.
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              No 2% payment gateway commissions. Balaga supports native NPCI UPI Intent and dynamic QR codes. Money settles directly from Google Pay, PhonePe, Paytm, and CRED into your Indian bank account.
+            <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+              Why are you forced to live as four fragmented people across four disconnected corporate silos every day?
             </p>
-            <div className="pt-2 flex items-center gap-3">
-              <button
-                onClick={onOpenPayment}
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-amber-500/20"
-              >
-                <QrCode className="w-4 h-4" />
-                <span>Test UPI Payment Flow</span>
-              </button>
-              <span className="text-xs text-slate-500">Supports GPay, PhonePe, Paytm & BHIM</span>
+            <div className="pt-4">
+              <div className="p-4 rounded-2xl bg-[#12141c] border border-red-500/20 text-xs text-red-300 space-y-2">
+                <div className="font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-400" />
+                  The Cost of Web Fragmentation
+                </div>
+                <p className="text-[#8c887e]">
+                  You hide your tech ambition on Instagram because your friends cringe, and you post robotic corporate theater on LinkedIn because you can't be authentic.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Mini QR Demo Card */}
-          <div className="p-5 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl flex flex-col items-center text-center space-y-3 w-64 shrink-0">
-            <div className="p-3 bg-white rounded-2xl shadow-inner">
-              <img
-                src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=upi://pay?pa=balaga@okhdfcbank&pn=Balaga%20Network&am=499&cu=INR"
-                alt="UPI Demo QR"
-                className="w-28 h-28"
-              />
+          {/* Right Column: Contrast Comparison Matrix */}
+          <div className="lg:w-7/12 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Instagram Card */}
+              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
+                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">01 · Personal Silo</div>
+                <h3 className="text-lg font-bold text-white">Instagram</h3>
+                <p className="text-xs text-[#8c887e] leading-relaxed">
+                  Great for weekend café stories and badminton photos, but completely useless for recruiting engineers, finding a co-founder, or pitching angels.
+                </p>
+              </div>
+
+              {/* LinkedIn Card */}
+              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
+                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">02 · Corporate Mask</div>
+                <h3 className="text-lg font-bold text-white">LinkedIn</h3>
+                <p className="text-xs text-[#8c887e] leading-relaxed">
+                  Choked with performative "I am thrilled to announce" fake cringe, rigid corporate resumes, and zero authentic human connection.
+                </p>
+              </div>
+
+              {/* Calendly Card */}
+              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
+                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">03 · Expensive Booking</div>
+                <h3 className="text-lg font-bold text-white">Calendly & Tools</h3>
+                <p className="text-xs text-[#8c887e] leading-relaxed">
+                  Paying $15/month just to share a booking link, while juggling multiple calendar tabs and broken timezone converters.
+                </p>
+              </div>
+
+              {/* WhatsApp Card */}
+              <div className="p-6 rounded-3xl bg-[#0f1118] border border-white/5 space-y-2.5">
+                <div className="text-xs font-mono text-red-400 uppercase tracking-wider">04 · Privacy Leakage</div>
+                <h3 className="text-lg font-bold text-white">WhatsApp / DMs</h3>
+                <p className="text-xs text-[#8c887e] leading-relaxed">
+                  Forced to give out your personal phone number to recruiters, candidates, and strangers, exposing your personal life to everyone.
+                </p>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-bold text-slate-200">Instant UPI Checkout</div>
-              <p className="text-[10px] text-emerald-400 font-semibold">0% Commission · Instant Settlement</p>
+
+            {/* The Balaga Resolution */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/30 via-[#181510] to-[#12141c] border border-amber-500/30 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-mono text-[#e5a855] font-semibold">
+                <Sparkles className="w-4 h-4 text-[#e5a855]" />
+                <span>THE BALAGA SOVEREIGN ALTERNATIVE</span>
+              </div>
+              <h3 className="text-xl font-bold text-white">
+                One Master Account. Zero Data Bleed. Two Parallel Realms.
+              </h3>
+              <p className="text-xs sm:text-sm text-[#a8a498] leading-relaxed">
+                Log in once at <strong>balaga.online</strong>. Enjoy authentic cultural life, vernacular reels, and friends on one side. Switch instantly to recruit talent, book mentor office hours, and launch products on the other.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ARCHITECTURE STATS SECTION */}
-      <section id="architecture" className="px-4 sm:px-8 py-16 max-w-5xl mx-auto w-full text-center space-y-10">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white">Built on the ₹0 Free-For-Dev Stack</h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-xl mx-auto">
-            Bootstrapped founders can run their entire MVP infrastructure with enterprise reliability at zero monthly cost.
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 3: ONE IDENTITY TRANSFORMS INTO TWO WORLDS
+      ───────────────────────────────────────────────────────────── */}
+      <section id="transformation" className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="text-center max-w-3xl mx-auto mb-14 space-y-4">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#e5a855] font-semibold">
+            [ 03 // BIFURCATION ]
+          </span>
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white leading-tight">
+            One Sovereign Identity. <br />
+            <span className="font-serif italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e5a855] via-amber-200 to-amber-500">
+              Mathematical Bifurcation.
+            </span>
+          </h2>
+          <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+            Switch state below to experience how your profile, navigation, messaging, and database queries dynamically shift between the two realms without cross-contamination.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-            <div className="text-xs text-slate-400">Database</div>
-            <div className="text-sm font-bold text-white">Supabase Postgres</div>
-            <div className="text-[10px] text-emerald-400 font-semibold">50,000 MAUs Free</div>
+        {/* Live Interactive Transformation Stage */}
+        <InteractiveRealmStage onEnterApp={onEnterApp} />
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 4: THE SOCIALIZING WORLD
+      ───────────────────────────────────────────────────────────── */}
+      <section id="social-realm" className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+          
+          {/* Left Column: Realm Philosophy */}
+          <div className="lg:w-5/12 lg:sticky lg:top-28 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-950/40 border border-violet-500/30 text-[10px] font-mono uppercase tracking-wider text-violet-300">
+              <Heart className="w-3 h-3 text-violet-400" />
+              <span>REALM 01 · SOCIALIZING</span>
+            </div>
+            
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+              Culture, Hobbies & Authentic Human Scale.
+            </h2>
+            
+            <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+              No corporate posturing. No algorithmic outrage. A vibrant social network celebrating India's rich multilingual tapestry, weekend hobbies, and real neighborhood hangouts.
+            </p>
+
+            <div className="pt-2">
+              <button
+                onClick={() => onEnterApp("socializing")}
+                className="px-6 py-3 rounded-full bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition shadow-lg shadow-violet-900/40 flex items-center gap-2 group"
+              >
+                <span>Enter Socializing Realm</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-            <div className="text-xs text-slate-400">Edge Hosting</div>
-            <div className="text-sm font-bold text-white">Cloudflare + Vercel</div>
-            <div className="text-[10px] text-emerald-400 font-semibold">Unlimited Bandwidth</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-            <div className="text-xs text-slate-400">Transactional Email</div>
-            <div className="text-sm font-bold text-white">Resend API</div>
-            <div className="text-[10px] text-emerald-400 font-semibold">3,000 Emails/Mo Free</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-            <div className="text-xs text-slate-400">AI Inference</div>
-            <div className="text-sm font-bold text-white">Groq Cloud LPUs</div>
-            <div className="text-[10px] text-emerald-400 font-semibold">Free Llama 3.3 Speed</div>
+
+          {/* Right Column: 4 Pillars */}
+          <div className="lg:w-7/12 space-y-4">
+            {/* Pillar 1 */}
+            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                <Languages className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">IndicTrans2 Vernacular Engine</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Seamless script auto-detection across 10+ Indian languages (Kannada, Hindi, Tamil, Telugu, Marathi, Bengali). Read vernacular posts with 1-click contextual translation and Web Speech voice playback.
+              </p>
+            </div>
+
+            {/* Pillar 2 */}
+            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Hey.xyz Multi-Media & Lightbox</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Responsive 4-quad photo galleries, high-frame-rate vernacular video reels, and full-screen lightbox viewing. Zero compression degradation so your photography looks pristine.
+              </p>
+            </div>
+
+            {/* Pillar 3 */}
+            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                <Users className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Local Circles & Flash Hangouts</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Connect over badminton matches, weekend hiking, book clubs, and film screenings in Indiranagar, Koramangala, Bandra, and beyond with zero algorithmic friction.
+              </p>
+            </div>
+
+            {/* Pillar 4 */}
+            <div className="p-6 rounded-3xl bg-[#0f1017] border border-violet-500/15 space-y-3 hover:border-violet-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-violet-950/60 border border-violet-500/30 flex items-center justify-center text-violet-300">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Chatwoot Real-Time Messenger</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Encrypted peer messaging with live presence dots, double blue read receipts, and hover emoji reaction docks without ever exposing your private phone number.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FOOTER CALL TO ACTION */}
-      <footer className="mt-auto border-t border-slate-800/80 bg-slate-950 px-4 sm:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
-            B
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 5: THE FOUNDERS WORLD
+      ───────────────────────────────────────────────────────────── */}
+      <section id="founders-realm" className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start">
+          
+          {/* Left Column: Realm Philosophy */}
+          <div className="lg:w-5/12 lg:sticky lg:top-28 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-[10px] font-mono uppercase tracking-wider text-emerald-300">
+              <Rocket className="w-3 h-3 text-emerald-400" />
+              <span>REALM 02 · FOUNDERS</span>
+            </div>
+            
+            <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+              A Complete Startup Incubator In Your Browser.
+            </h2>
+            
+            <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+              Replace thousands of dollars in fragmented SaaS subscriptions. Hire engineers, book mentor office hours, launch products, and raise capital from one high-velocity dashboard.
+            </p>
+
+            <div className="pt-2">
+              <button
+                onClick={() => onEnterApp("founders")}
+                className="px-6 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-lg shadow-emerald-900/40 flex items-center gap-2 group"
+              >
+                <span>Enter Founders Realm</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
-          <span className="text-slate-400 font-medium">Balaga.online · Indian Cultural & Startup Network</span>
+
+          {/* Right Column: 4 Pillars */}
+          <div className="lg:w-7/12 space-y-4">
+            {/* Pillar 1 */}
+            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Twenty CRM Kanban ATS</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Visual 6-stage recruiter hiring pipeline (Applied → Screening → Interview → Technical → Offer → Hired). Drag and drop candidate applications directly without paying $300/mo for Ashby.
+              </p>
+            </div>
+
+            {/* Pillar 2 */}
+            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Cal.com Schedulers (Asia/Kolkata)</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Native 30-minute 1-on-1 office hour bookings for mentors and angel investors with automated timezone calibration, calendar sync, and confirmation reminders.
+              </p>
+            </div>
+
+            {/* Pillar 3 */}
+            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Dub.co Launchpad & Attribution</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Generate custom short-links (<code className="text-emerald-400 font-mono">balaga.link/p/...</code>) for demo day. Track referrer sources, unique visitors, and conversion metrics in real time.
+              </p>
+            </div>
+
+            {/* Pillar 4 */}
+            <div className="p-6 rounded-3xl bg-[#0b1210] border border-emerald-500/15 space-y-3 hover:border-emerald-500/30 transition">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
+                <Zap className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white">Hackathon Squad Matchmaker</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Role-locked team cards pairing frontend builders, backend architects, and AI researchers into hackathon squads in seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 6: SEAMLESS WORLD SWITCHING
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-14">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#e5a855] font-semibold">
+            [ 06 // FLUIDITY ]
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+            Flip Reality in Under Five Milliseconds.
+          </h2>
+          <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+            One button in the top header switches your active universe. The browser updates state, rebinds API authentication headers, and swaps view trees instantaneously.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onEnterApp("socializing")}
-            className="hover:text-slate-300 transition"
-          >
-            Socializing
-          </button>
-          <span>·</span>
-          <button
-            onClick={() => onEnterApp("founders")}
-            className="hover:text-slate-300 transition"
-          >
-            Founders
-          </button>
-          <span>·</span>
-          <button
-            onClick={onOpenLogin}
-            className="text-emerald-400 font-semibold hover:underline"
-          >
-            Log In
-          </button>
+        {/* Interactive Switcher Demo Container */}
+        <div className="p-8 sm:p-12 rounded-3xl bg-[#0e1017] border border-white/10 max-w-3xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center p-1.5 rounded-full bg-[#161822] border border-white/10">
+            <button
+              onClick={() => setActiveInteractiveWorld("socializing")}
+              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${
+                activeInteractiveWorld === "socializing"
+                  ? "bg-violet-600 text-white shadow-lg shadow-violet-900/40"
+                  : "text-[#8c887e] hover:text-white"
+              }`}
+            >
+              <Heart className="w-3.5 h-3.5" />
+              <span>Socializing Mode</span>
+            </button>
+            <button
+              onClick={() => setActiveInteractiveWorld("founders")}
+              className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${
+                activeInteractiveWorld === "founders"
+                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40"
+                  : "text-[#8c887e] hover:text-white"
+              }`}
+            >
+              <Rocket className="w-3.5 h-3.5" />
+              <span>Founders Mode</span>
+            </button>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-[#08090d] border border-white/5 font-mono text-xs text-left space-y-2">
+            <div className="text-[#8c887e] flex items-center justify-between">
+              <span>ACTIVE_TOKEN_SCOPE:</span>
+              <span className={activeInteractiveWorld === "socializing" ? "text-violet-400 font-bold" : "text-emerald-400 font-bold"}>
+                {activeInteractiveWorld === "socializing" ? "realm_socializing_v2" : "realm_founders_v2"}
+              </span>
+            </div>
+            <div className="text-[#8c887e] flex items-center justify-between">
+              <span>HTTP_HEADER:</span>
+              <span className="text-amber-400 font-semibold">x-platform-world: {activeInteractiveWorld}</span>
+            </div>
+            <div className="text-[#8c887e] flex items-center justify-between">
+              <span>LEAKAGE_RISK:</span>
+              <span className="text-emerald-400 font-bold">0.000% (Row-Level Security Enforced)</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-[#8c887e]">
+            Try clicking the buttons above to preview the state mutation.
+          </p>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 7: INDEPENDENT EXPERIENCES & PRIVACY BOUNDARIES
+      ───────────────────────────────────────────────────────────── */}
+      <section id="zero-bleed" className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#e5a855] font-semibold">
+            [ 07 // ZERO-BLEED GUARANTEE ]
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+            Cryptographic Separation at Every Layer.
+          </h2>
+          <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+            Your personal photos will never leak into investor meetings. Your startup pitch decks will never clutter your social circle.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+          {/* Privacy Box 1 */}
+          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-5 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-2xl bg-amber-950/60 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Row-Level Security (RLS)</h3>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Every query is stamped with the session's active realm. Postgres rejects any request attempting to query across world boundaries, guaranteeing zero memory or cache bleed.
+              </p>
+              <ul className="space-y-2 text-xs text-[#a09c91] pt-2">
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>Strictly partitioned database tables</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>Independent handle namespaces (@user_social vs @user_builder)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>No cross-pollinated activity feeds</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-3 rounded-xl bg-[#08090d] border border-white/5 font-mono text-[10px] text-emerald-400 flex items-center gap-2 mt-4">
+              <Lock className="w-3.5 h-3.5" />
+              <span>AES-256 session encryption with Supabase Auth</span>
+            </div>
+          </div>
+
+          {/* Privacy Box 2: Zero-Fee UPI Payment Spotlight */}
+          <div className="p-8 rounded-3xl bg-gradient-to-br from-[#0e1017] via-[#10171a] to-[#0c1412] border border-emerald-500/30 space-y-5 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <QrCode className="w-5 h-5" />
+              </div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-white">Zero-Fee UPI Gateway</h3>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  0% MDR
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#8c887e] leading-relaxed">
+                Direct NPCI bank-to-bank settlement (<code className="text-emerald-400 font-mono">balaga@okhdfcbank</code>). Unlock Creator, Founder, and Annual passes with instant QR generation and 1-tap mobile deep links.
+              </p>
+              <ul className="space-y-2 text-xs text-[#a09c91] pt-2">
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>₹0 commission to foreign payment aggregators</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>Direct settlement to your bank account</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>Google Pay, PhonePe, and Paytm 1-tap intent</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={onOpenPayment}
+              className="w-full mt-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-[#07080a] text-xs font-black transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Launch Zero-Fee UPI Payment Gateway</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 8: HOW BALAGA WORKS
+      ───────────────────────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-24 sm:py-32 px-4 sm:px-8 max-w-6xl mx-auto border-b border-white/10">
+        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#e5a855] font-semibold">
+            [ 08 // THE JOURNEY ]
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+            How Balaga Works.
+          </h2>
+          <p className="text-sm sm:text-base text-[#a09c91] leading-relaxed">
+            Three intuitive steps to liberate your digital existence from corporate walled gardens.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Step 1 */}
+          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative">
+            <span className="text-4xl font-mono font-light text-[#e5a855]/40">01</span>
+            <h3 className="text-lg font-bold text-white">Claim Your Sovereign ID</h3>
+            <p className="text-xs text-[#8c887e] leading-relaxed">
+              Create your master account with email or jump straight in with 1-click verified demo profiles. One master password secures your entire digital footprint.
+            </p>
+          </div>
+
+          {/* Step 2 */}
+          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative">
+            <span className="text-4xl font-mono font-light text-[#e5a855]/40">02</span>
+            <h3 className="text-lg font-bold text-white">Initialize Twin Personas</h3>
+            <p className="text-xs text-[#8c887e] leading-relaxed">
+              Curate your creative social handle for friends and vernacular stories. Then craft your verified builder portfolio for co-founders and investors.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="p-8 rounded-3xl bg-[#0e1017] border border-white/10 space-y-4 relative">
+            <span className="text-4xl font-mono font-light text-[#e5a855]/40">03</span>
+            <h3 className="text-lg font-bold text-white">Traverse Realms At Will</h3>
+            <p className="text-xs text-[#8c887e] leading-relaxed">
+              Tap the persistent top-left switcher anytime. Go from reviewing candidate resumes to sharing a weekend photography reel in less than 5 milliseconds.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 9: FINAL BRAND REVEAL & JOIN BALAGA CTA
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-24 sm:py-36 px-4 sm:px-8 max-w-5xl mx-auto text-center relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-amber-500/15 via-violet-600/15 to-emerald-500/15 blur-[140px] pointer-events-none rounded-full" />
+
+        <div className="relative z-10 p-8 sm:p-14 rounded-3xl bg-[#0e1017]/90 border border-white/15 backdrop-blur-3xl shadow-2xl space-y-8">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#e5a855] font-semibold">
+            [ 09 // READY TO COMMENCE ]
+          </span>
+
+          <h2 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-white leading-tight">
+            Stop Splitting Your Life. <br />
+            <span className="font-serif italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-[#e5a855] via-amber-200 to-amber-500">
+              Own Both Realms.
+            </span>
+          </h2>
+
+          <p className="text-sm sm:text-base text-[#a09c91] max-w-xl mx-auto leading-relaxed">
+            Join thousands of creators, builders, and community visionaries already active on India's premier sovereign dual-realm network.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <button
+              onClick={() => onOpenLogin("signup")}
+              className="px-8 py-4 rounded-full bg-gradient-to-r from-[#e5a855] via-[#d97706] to-[#b45309] hover:from-[#f5b865] hover:to-[#c66307] text-[#07080a] text-sm font-black transition shadow-2xl shadow-amber-500/30 flex items-center gap-2 group"
+            >
+              <span>Join Balaga — It's Free</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <button
+              onClick={() => onEnterApp()}
+              className="px-8 py-4 rounded-full bg-[#181a24] hover:bg-[#222534] text-white border border-white/10 text-sm font-bold transition flex items-center gap-2"
+            >
+              <span>Launch Live App</span>
+            </button>
+          </div>
+
+          <div className="pt-4 flex items-center justify-center gap-6 text-xs text-[#8c887e]">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>No credit card required</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>Free forever tier</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>Direct UPI access</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 10: PROFESSIONAL FOOTER
+      ───────────────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/10 bg-[#060709] py-16 px-4 sm:px-8 text-xs text-[#8c887e]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="flex flex-col md:flex-row justify-between gap-8">
+            {/* Brand column */}
+            <div className="space-y-4 max-w-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#e5a855] to-[#b45309] flex items-center justify-center font-black text-[#07080a] text-sm">
+                  B
+                </div>
+                <span className="font-extrabold text-base tracking-tight text-white">
+                  Balaga.online
+                </span>
+              </div>
+              <p className="text-xs text-[#8c887e] leading-relaxed">
+                India's sovereign dual-realm ecosystem. Two worlds. One identity. Infinite possibilities. Built on zero-cost high-performance infrastructure.
+              </p>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>All Edge Nodes Operational (Cloudflare + Supabase + Render)</span>
+              </div>
+            </div>
+
+            {/* Quick Links Column */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+              <div className="space-y-3">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-white font-bold">
+                  Two Realms
+                </p>
+                <ul className="space-y-2 text-xs">
+                  <li>
+                    <button onClick={() => onEnterApp("socializing")} className="hover:text-white transition">
+                      Socializing Realm
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => onEnterApp("founders")} className="hover:text-white transition">
+                      Founders Realm
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => scrollToSection("transformation")} className="hover:text-white transition">
+                      Live Bifurcation
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => scrollToSection("zero-bleed")} className="hover:text-white transition">
+                      Zero Data Bleed
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-white font-bold">
+                  Technologies
+                </p>
+                <ul className="space-y-2 text-xs">
+                  <li>
+                    <span className="text-[#a09c91]">IndicTrans2 Bhasha</span>
+                  </li>
+                  <li>
+                    <span className="text-[#a09c91]">Twenty CRM Kanban</span>
+                  </li>
+                  <li>
+                    <span className="text-[#a09c91]">Cal.com Schedulers</span>
+                  </li>
+                  <li>
+                    <span className="text-[#a09c91]">Hey.xyz Quad Media</span>
+                  </li>
+                  <li>
+                    <span className="text-[#a09c91]">Dub.co Attribution</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-white font-bold">
+                  Payments & Auth
+                </p>
+                <ul className="space-y-2 text-xs">
+                  <li>
+                    <button onClick={onOpenPayment} className="hover:text-white transition">
+                      Zero-Fee UPI Gateway
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => onOpenLogin("login")} className="hover:text-white transition">
+                      Sign In
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => onOpenLogin("signup")} className="hover:text-white transition">
+                      Create Account
+                    </button>
+                  </li>
+                  <li>
+                    <span className="text-[#a09c91]">Supabase RLS</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Copyright Strip */}
+          <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#6c6960]">
+            <div>
+              © 2026 Balaga.online. All rights reserved. Built for Bharat & the Global Sovereign Web.
+            </div>
+            <div className="flex items-center gap-6 font-mono text-[10px]">
+              <span>ZERO_MDR: ENABLED</span>
+              <span>RLS_ISOLATION: 100%</span>
+              <span>TIMEZONE: ASIA/KOLKATA</span>
+            </div>
+          </div>
         </div>
       </footer>
-
     </div>
   );
 };
