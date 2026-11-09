@@ -1,4 +1,4 @@
-name = "balaga"
+name = "balaga-online"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "apps/web/dist"
+assets = { directory = "apps/web/dist" }
