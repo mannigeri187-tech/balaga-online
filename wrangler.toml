@@ -6,3 +6,4 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 directory = "apps/web/dist"
 binding = "ASSETS"
+not_found_handling = "single-page-application"
