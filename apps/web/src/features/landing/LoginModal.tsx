@@ -310,7 +310,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#090D1B]/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl bg-[#11182B] border border-[#263152] shadow-2xl p-6 sm:p-9 text-[#F4F5FA] overflow-hidden">
+      <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-2xl bg-[#11182B] border border-[#263152] shadow-2xl p-6 sm:p-8 text-[#F4F5FA]">
         
         {/* Subtle decorative top hairline in primary violet */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#7047EB] to-transparent" />
