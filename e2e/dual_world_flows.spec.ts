@@ -230,6 +230,39 @@ test.describe("Balaga.online Dual-World E2E Test Suite", () => {
     await page.locator("aside button:has-text('Home')").click();
     await expect(page.locator("text=Social Innovations Hub")).toBeVisible();
   });
+
+  test("10. Public Landing Page & Zero-Fee UPI Payment: Opens landing page, triggers Login & UPI modal cleanly", async ({ page }) => {
+    // Open Landing Page from header
+    const landingBtn = page.locator("header button:has-text('Landing Page')");
+    await expect(landingBtn).toBeVisible();
+    await landingBtn.click();
+
+    // Verify Landing Page hero
+    await expect(page.locator("text=One Platform.")).toBeVisible();
+    await expect(page.locator("text=India's Premier Dual-Realm Network")).toBeVisible();
+
+    // Open UPI Payment Modal from Landing Page navbar
+    const upiBtn = page.locator("nav button:has-text('UPI Payment')");
+    await upiBtn.click();
+
+    // Verify UPI Payment Modal
+    await expect(page.locator("text=Zero-Fee UPI Gateway")).toBeVisible();
+    await expect(page.locator("text=0% MDR")).toBeVisible();
+    await expect(page.locator("text=balaga@okhdfcbank")).toBeVisible();
+
+    // Simulate instant test payment
+    const simulateBtn = page.locator("button:has-text('Simulate Instant UPI Payment')");
+    await simulateBtn.click();
+
+    // Verify Payment Confirmation
+    await expect(page.locator("text=Payment Confirmed!")).toBeVisible();
+    await expect(page.locator("text=Continue to Realm")).toBeVisible();
+
+    // Close / Continue to Realm
+    await page.locator("button:has-text('Continue to Realm')").click();
+    await expect(page.locator("text=Payment Confirmed!")).not.toBeVisible();
+  });
 });
+
 
 

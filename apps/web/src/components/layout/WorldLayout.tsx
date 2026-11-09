@@ -33,14 +33,27 @@ import { PremiumCentreView } from "../../features/founders/PremiumCentreView";
 import { CreateMediaModal } from "../../features/socializing/CreateMediaModal";
 import { CommandPaletteModal } from "../CommandPaletteModal";
 import { IntelligenceControlModal } from "../IntelligenceControlModal";
+import { LandingPageView } from "../../features/landing/LandingPageView";
+import { LoginModal } from "../../features/landing/LoginModal";
+import { UpiPaymentModal } from "../../features/landing/UpiPaymentModal";
 
 export const WorldLayout: React.FC = () => {
-  const { activeWorld, isLoading } = useWorld();
+  const { activeWorld, switchWorld, isLoading } = useWorld();
   const isSocial = activeWorld === WORLDS.SOCIALIZING;
-  const [currentTab, setCurrentTab] = useState<string>("feed");
+  const [currentTab, setCurrentTab] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("view") === "landing" || window.location.hash === "#landing") {
+        return "landing";
+      }
+    }
+    return "feed";
+  });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isIntelligenceModalOpen, setIsIntelligenceModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   // Global Ctrl+K / Cmd+K listener
   React.useEffect(() => {
@@ -66,6 +79,14 @@ export const WorldLayout: React.FC = () => {
   const handleTabChange = (tab: string) => {
     if (tab === "ai") {
       setIsIntelligenceModalOpen(true);
+      return;
+    }
+    if (tab === "payment") {
+      setIsPaymentModalOpen(true);
+      return;
+    }
+    if (tab === "login") {
+      setIsLoginModalOpen(true);
       return;
     }
     setCurrentTab(tab);
@@ -139,6 +160,39 @@ export const WorldLayout: React.FC = () => {
         return <FoundersDashboard onNavigateTab={setCurrentTab} />;
     }
   };
+
+  if (currentTab === "landing") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+        <LandingPageView
+          onEnterApp={(realm) => {
+            if (realm && realm !== activeWorld) {
+              switchWorld(realm);
+            }
+            setCurrentTab(realm === "founders" ? "dashboard" : "feed");
+          }}
+          onOpenLogin={() => setIsLoginModalOpen(true)}
+          onOpenPayment={() => setIsPaymentModalOpen(true)}
+        />
+
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          onSuccess={(realm) => {
+            if (realm && realm !== activeWorld) {
+              switchWorld(realm);
+            }
+            setCurrentTab(realm === "founders" ? "dashboard" : "feed");
+          }}
+        />
+
+        <UpiPaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
@@ -267,6 +321,24 @@ export const WorldLayout: React.FC = () => {
       <IntelligenceControlModal
         isOpen={isIntelligenceModalOpen}
         onClose={() => setIsIntelligenceModalOpen(false)}
+      />
+
+      {/* Login / Fast Profile Switcher Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={(realm) => {
+          if (realm && realm !== activeWorld) {
+            switchWorld(realm);
+          }
+          setCurrentTab(realm === "founders" ? "dashboard" : "feed");
+        }}
+      />
+
+      {/* Zero-Fee UPI Payment Gateway Modal */}
+      <UpiPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
       />
     </div>
   );

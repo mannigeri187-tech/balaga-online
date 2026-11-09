@@ -13,20 +13,35 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<{ error: any }>;
   signUpWithEmail: (email: string, password: string) => Promise<{ error: any }>;
+  loginAsDemo: (profile: "aarav" | "priya") => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEFAULT_DEV_ACCOUNT: Account = {
-  id: "00000000-0000-0000-0000-000000000001",
-  email: "aarav.dev@platform.local",
-  is18PlusVerified: true,
-  ageVerifiedAt: new Date().toISOString(),
-  subscriptionTier: "premium",
-  isSuspended: false,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+const DEMO_ACCOUNTS: Record<"aarav" | "priya", Account> = {
+  aarav: {
+    id: "00000000-0000-0000-0000-000000000001",
+    email: "aarav@balaga.online",
+    is18PlusVerified: true,
+    ageVerifiedAt: new Date().toISOString(),
+    subscriptionTier: "premium",
+    isSuspended: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  priya: {
+    id: "00000000-0000-0000-0000-000000000002",
+    email: "priya@balaga.online",
+    is18PlusVerified: true,
+    ageVerifiedAt: new Date().toISOString(),
+    subscriptionTier: "premium",
+    isSuspended: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 };
+
+const DEFAULT_DEV_ACCOUNT: Account = DEMO_ACCOUNTS.aarav;
 
 function mapUserToAccount(user: User): Account {
   return {
@@ -46,6 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [account, setAccount] = useState<Account | null>(() => {
+    const savedDemo = localStorage.getItem("balaga_demo_account") as "aarav" | "priya" | null;
+    if (savedDemo && DEMO_ACCOUNTS[savedDemo]) {
+      return DEMO_ACCOUNTS[savedDemo];
+    }
     return import.meta.env.DEV ? DEFAULT_DEV_ACCOUNT : null;
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -99,12 +118,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: result.error };
   };
 
+  const loginAsDemo = (profile: "aarav" | "priya") => {
+    const chosen = DEMO_ACCOUNTS[profile];
+    setAccount(chosen);
+    localStorage.setItem("balaga_demo_account", profile);
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
     } catch {
       // Continue cleanup even if network fails
     }
+    localStorage.removeItem("balaga_demo_account");
     setSession(null);
     setUser(null);
     setAccount(null);
@@ -122,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         loginWithEmail,
         signUpWithEmail,
+        loginAsDemo,
       }}
     >
       {children}

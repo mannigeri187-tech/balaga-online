@@ -13,7 +13,9 @@ import {
   Compass,
   ArrowRight,
   X,
-  Sparkles
+  Sparkles,
+  QrCode,
+  LogIn
 } from "lucide-react";
 import { useWorld } from "../contexts/WorldContext";
 import { WORLDS } from "@platform/config";
@@ -76,6 +78,39 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       icon: Sparkles,
       action: () => {
         onNavigateTab("ai");
+        onClose();
+      }
+    },
+    {
+      id: "landing-page",
+      title: "View Public Landing Page",
+      subtitle: "Dual-Realm showcase, zero-data bleed architecture & pricing",
+      realm: "global",
+      icon: Globe,
+      action: () => {
+        onNavigateTab("landing");
+        onClose();
+      }
+    },
+    {
+      id: "upi-payment-gateway",
+      title: "Zero-Fee UPI Payment Gateway",
+      subtitle: "0% MDR NPCI QR code & mobile 1-tap checkout for pro passes",
+      realm: "global",
+      icon: QrCode,
+      action: () => {
+        onNavigateTab("payment");
+        onClose();
+      }
+    },
+    {
+      id: "login-switch-profile",
+      title: "Switch Profile / Sign In",
+      subtitle: "1-Click fast demo profiles (Aarav/Priya) and Supabase Auth",
+      realm: "global",
+      icon: LogIn,
+      action: () => {
+        onNavigateTab("login");
         onClose();
       }
     },

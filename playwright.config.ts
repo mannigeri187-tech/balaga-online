@@ -8,9 +8,15 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "https://balagaonline.vercel.app",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:4173",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+  },
+  webServer: {
+    command: "npm --prefix apps/web run preview -- --port 4173",
+    port: 4173,
+    reuseExistingServer: !process.env.CI,
+    timeout: 15000,
   },
   projects: [
     {
