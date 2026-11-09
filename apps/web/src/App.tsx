@@ -86,6 +86,20 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
+  // Handle returning Google OAuth login with preserved realm selection
+  useEffect(() => {
+    if (isAuthenticated && isEmailVerified && typeof window !== "undefined") {
+      const pendingRealm = sessionStorage.getItem("balaga_oauth_realm") as "socializing" | "founders" | null;
+      if (pendingRealm) {
+        sessionStorage.removeItem("balaga_oauth_realm");
+        switchWorld(pendingRealm);
+        setCurrentRoute("app");
+        setIsAuthModalOpen(false);
+        window.history.replaceState({}, "", "/app");
+      }
+    }
+  }, [isAuthenticated, isEmailVerified, switchWorld]);
+
   // Synchronize browser history (back/forward navigation)
   useEffect(() => {
     const handlePopState = () => {

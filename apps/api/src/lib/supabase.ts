@@ -73,7 +73,7 @@ export async function verifySupabaseToken(token: string): Promise<VerificationRe
           id: data.user.id,
           email: data.user.email || payload.email || "",
           role: data.user.role || payload.role,
-          emailConfirmedAt: data.user.email_confirmed_at || null,
+          emailConfirmedAt: data.user.email_confirmed_at || (data.user.app_metadata?.provider === "google" ? data.user.created_at : null),
           appMetadata: data.user.app_metadata,
           userMetadata: data.user.user_metadata,
         },

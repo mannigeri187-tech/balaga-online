@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<{ error: any; user?: User | null; unverified?: boolean }>;
   signUpWithEmail: (email: string, password: string, realm?: "socializing" | "founders") => Promise<{ error: any; user?: User | null; needsVerification?: boolean }>;
+  signInWithGoogle: (realm?: "socializing" | "founders") => Promise<{ data?: any; error: any }>;
   resendVerificationEmail: (email: string) => Promise<{ error: any }>;
   resetPasswordForEmail: (email: string) => Promise<{ error: any }>;
   updateUserPassword: (password: string) => Promise<{ error: any }>;
@@ -21,14 +22,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function isVerifiedUser(u?: User | null): boolean {
+  if (!u) return false;
+  // Trust authoritative Supabase confirmation or trusted Google OAuth provider
+  return Boolean(u.email_confirmed_at || u.confirmed_at || u.app_metadata?.provider === "google");
+}
+
 function mapUserToAccount(user: User): Account {
+  const isGoogle = user.app_metadata?.provider === "google";
   return {
     id: user.id,
     email: user.email || "",
     phone: user.phone || null,
     is18PlusVerified: user.user_metadata?.is18PlusVerified ?? true,
     ageVerifiedAt: user.user_metadata?.ageVerifiedAt || new Date().toISOString(),
-    emailVerifiedAt: user.email_confirmed_at || null,
+    emailVerifiedAt: user.email_confirmed_at || (isGoogle ? user.created_at : null),
     subscriptionTier: user.user_metadata?.subscriptionTier || "premium",
     isSuspended: false,
     createdAt: user.created_at,
@@ -54,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // 1. Initial authoritative session check from Supabase Auth
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      if (initialSession?.user?.email_confirmed_at) {
+      if (initialSession?.user && isVerifiedUser(initialSession.user)) {
         setSession(initialSession);
         setUser(initialSession.user);
         setAccount(mapUserToAccount(initialSession.user));
@@ -74,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 2. Real-time auth state subscription
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      if (currentSession?.user?.email_confirmed_at) {
+      if (currentSession?.user && isVerifiedUser(currentSession.user)) {
         setSession(currentSession);
         setUser(currentSession.user);
         setAccount(mapUserToAccount(currentSession.user));
@@ -113,9 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
-      // Check authoritative verified status (email_confirmed_at)
-      if (!data.user?.email_confirmed_at) {
-        // Immediately terminate unverified session
+      // Check authoritative verified status (email_confirmed_at or Google OAuth)
+      if (!isVerifiedUser(data.user)) {
         await supabase.auth.signOut();
         setSession(null);
         setUser(null);
@@ -164,20 +171,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Authoritative check: unconfirmed accounts MUST require email confirmation
-      const isConfirmed = Boolean(data.user?.email_confirmed_at);
+      const isConfirmed = isVerifiedUser(data.user);
       if (!isConfirmed) {
-        // Enforce: unverified users cannot have active application sessions
         setSession(null);
         setUser(data.user);
         setAccount(null);
         return { error: null, user: data.user, needsVerification: true };
       }
 
-      // If project has email confirmations disabled in dev, map account
       setSession(data.session);
       setUser(data.user);
       setAccount(data.user ? mapUserToAccount(data.user) : null);
       return { error: null, user: data.user, needsVerification: false };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async (realm: "socializing" | "founders" = "socializing") => {
+    setIsLoading(true);
+    try {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("balaga_oauth_realm", realm);
+      }
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/` : undefined;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      return { data, error };
     } finally {
       setIsLoading(false);
     }
@@ -218,6 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem("balaga_demo_account");
       localStorage.removeItem("balaga_active_world");
+      sessionStorage.removeItem("balaga_oauth_realm");
     } catch {
       // ignore storage errors
     }
@@ -226,8 +257,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccount(null);
   };
 
-  const isAuthenticated = Boolean(session && user && user.email_confirmed_at);
-  const isEmailVerified = Boolean(user && user.email_confirmed_at);
+  const isEmailVerified = isVerifiedUser(user);
+  const isAuthenticated = Boolean(session && user && isEmailVerified);
 
   return (
     <AuthContext.Provider
@@ -242,6 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         loginWithEmail,
         signUpWithEmail,
+        signInWithGoogle,
         resendVerificationEmail,
         resetPasswordForEmail,
         updateUserPassword,
